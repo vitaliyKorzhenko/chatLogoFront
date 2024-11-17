@@ -1,0 +1,15 @@
+/* Chat.css */
+
+.chat-messages {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    overflow-y: auto;
+    background-color: #ffffff;
+    padding: 1rem;
+  }
+  
+  .chat-messages p {
+    margin: 0.5rem 0;
+  }
+  
