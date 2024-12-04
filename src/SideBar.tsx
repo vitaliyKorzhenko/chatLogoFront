@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, List, ListItem, ListItemText, Avatar, Badge, IconButton, Divider, Drawer, useMediaQuery } from '@mui/material';
+import { Box, Typography, List, ListItem, ListItemText, Avatar, IconButton, Divider, Drawer, useMediaQuery } from '@mui/material';
 import { FiLogOut } from 'react-icons/fi';
 import { auth } from './firebaseConfig';
 import { useTheme } from '@mui/material/styles';
@@ -17,13 +17,13 @@ const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title
 
   return (
     <Drawer
-      variant={isMobile ? "temporary" : "permanent"}
+      variant="permanent"
       open
       sx={{
-        width: isMobile ? '80px' : '300px',
+        width: isMobile ? '80px' : '250px',
         flexShrink: 0,
         '& .MuiDrawer-paper': {
-          width: isMobile ? '80px' : '300px',
+          width: isMobile ? '80px' : '250px',
           boxSizing: 'border-box',
         },
       }}
@@ -44,10 +44,11 @@ const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title
             sx={{
               fontWeight: 'bold',
               color: '#333',
-              fontSize: isMobile ? '0.75rem' : '1rem',
+              fontSize: isMobile ? '0.6rem' : '0.9rem',
               flexBasis: isMobile ? '100%' : 'auto',
               textAlign: isMobile ? 'center' : 'left',
-              mb: isMobile ? 1 : 0
+              mb: isMobile ? 1 : 0,
+              wordWrap: 'break-word' // Перенос текста, если не помещается
             }}
           >
             {email}
@@ -56,8 +57,9 @@ const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title
             variant="body2"
             sx={{
               color: '#777',
-              fontSize: isMobile ? '0.65rem' : '0.85rem',
+              fontSize: isMobile ? '0.55rem' : '0.8rem',
               textAlign: isMobile ? 'center' : 'left',
+              wordWrap: 'break-word' // Перенос текста, если не помещается
             }}
           >
             {title}
@@ -80,28 +82,27 @@ const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title
                   sx={{
                     borderRadius: '8px',
                     '&:hover': { backgroundColor: '#e3f2fd', cursor: 'pointer' },
-                    padding: '10px',
+                    padding: isMobile ? '8px' : '8px',
                     transition: 'background-color 0.3s ease',
                     display: 'flex',
                     alignItems: 'center'
                   }}
                 >
-                  <Badge color="error" badgeContent={client.unread} overlap="circular">
-                    <Avatar sx={{ bgcolor: '#007bff', color: '#ffffff', width: isMobile ? 30 : 40, height: isMobile ? 30 : 40 }}>
+                  {!isMobile && (
+                    <Avatar sx={{ bgcolor: '#007bff', color: '#ffffff', width: 35, height: 35, mr: 1.5 }}>
                       {client.name.charAt(0)}
                     </Avatar>
-                  </Badge>
-                  {!isMobile && (
-                    <ListItemText 
-                      primary={client.name} 
-                      sx={{ 
-                        ml: 2, 
-                        color: '#333', 
-                        fontWeight: '500', 
-                        fontSize: '1rem' 
-                      }} 
-                    />
                   )}
+                  <ListItemText 
+                    primary={client.name} // Отображаем полное имя клиента
+                    sx={{ 
+                      color: '#333', 
+                      fontWeight: '500', 
+                      fontSize: isMobile ? '0.6rem' : '0.9rem',
+                      textAlign: 'center',
+                      wordWrap: 'break-word' // Перенос текста, если не помещается
+                    }} 
+                  />
                 </ListItem>
                 {index < clients.length - 1 && <Divider sx={{ my: 1 }} />}
               </React.Fragment>
