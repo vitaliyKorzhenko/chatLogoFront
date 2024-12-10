@@ -1,17 +1,30 @@
 import React from 'react';
-import { Box, Typography, List, ListItem, ListItemText, Avatar, IconButton, Divider, Drawer, useMediaQuery } from '@mui/material';
+import { 
+  Box, 
+  Typography, 
+  List, 
+  ListItem, 
+  ListItemText, 
+  Avatar, 
+  IconButton, 
+  Divider, 
+  Drawer, 
+  Badge, 
+  useMediaQuery 
+} from '@mui/material';
 import { FiLogOut } from 'react-icons/fi';
 import { auth } from './firebaseConfig';
 import { useTheme } from '@mui/material/styles';
 
 interface SidebarProps {
-  clients: { id: number; name: string; unread: number }[];
+  clients: { id: number; name: string }[];
   onSelectClient: (clientId: number) => void;
   email: string;
   title: string;
+  unreadMessages: Record<number, number>;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title }) => {
+const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title, unreadMessages }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -48,7 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title
               flexBasis: isMobile ? '100%' : 'auto',
               textAlign: isMobile ? 'center' : 'left',
               mb: isMobile ? 1 : 0,
-              wordWrap: 'break-word' // Перенос текста, если не помещается
+              wordWrap: 'break-word',
             }}
           >
             {email}
@@ -59,22 +72,24 @@ const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title
               color: '#777',
               fontSize: isMobile ? '0.55rem' : '0.8rem',
               textAlign: isMobile ? 'center' : 'left',
-              wordWrap: 'break-word' // Перенос текста, если не помещается
+              wordWrap: 'break-word',
             }}
           >
             {title}
           </Typography>
           <IconButton color="primary" size="small" sx={{ ml: isMobile ? 'auto' : 0 }}>
-            <FiLogOut onClick={() => {
-              auth.signOut();
-            }} />
+            <FiLogOut
+              onClick={() => {
+                auth.signOut();
+              }}
+            />
           </IconButton>
         </Box>
         <Divider sx={{ mb: 2 }} />
         {/* Clients List */}
         <Box flexGrow={1} overflow="auto">
           <List>
-            {clients.map((client, index) => (
+            {clients.map((client) => (
               <React.Fragment key={client.id}>
                 <ListItem
                   component="div"
@@ -82,29 +97,39 @@ const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title
                   sx={{
                     borderRadius: '8px',
                     '&:hover': { backgroundColor: '#e3f2fd', cursor: 'pointer' },
-                    padding: isMobile ? '8px' : '8px',
+                    padding: isMobile ? '8px' : '12px',
                     transition: 'background-color 0.3s ease',
                     display: 'flex',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
                   }}
                 >
-                  {!isMobile && (
-                    <Avatar sx={{ bgcolor: '#007bff', color: '#ffffff', width: 35, height: 35, mr: 1.5 }}>
-                      {client.name.charAt(0)}
-                    </Avatar>
+                  <Box display="flex" alignItems="center">
+                    {!isMobile && (
+                      <Avatar sx={{ bgcolor: '#007bff', color: '#ffffff', width: 35, height: 35, mr: 1.5 }}>
+                        {client.name.charAt(0)}
+                      </Avatar>
+                    )}
+                    <ListItemText
+                      primary={client.name}
+                      sx={{
+                        color: '#333',
+                        fontWeight: '500',
+                        fontSize: isMobile ? '0.6rem' : '0.9rem',
+                        textAlign: isMobile ? 'center' : 'left',
+                        wordWrap: 'break-word',
+                      }}
+                    />
+                  </Box>
+                  {unreadMessages[client.id] > 0 && (
+                    <Badge
+                      badgeContent={unreadMessages[client.id]}
+                      color="error"
+                      sx={{ ml: 2 }}
+                    />
                   )}
-                  <ListItemText 
-                    primary={client.name} // Отображаем полное имя клиента
-                    sx={{ 
-                      color: '#333', 
-                      fontWeight: '500', 
-                      fontSize: isMobile ? '0.6rem' : '0.9rem',
-                      textAlign: 'center',
-                      wordWrap: 'break-word' // Перенос текста, если не помещается
-                    }} 
-                  />
                 </ListItem>
-                {index < clients.length - 1 && <Divider sx={{ my: 1 }} />}
+                <Divider sx={{ my: 1 }} />
               </React.Fragment>
             ))}
           </List>

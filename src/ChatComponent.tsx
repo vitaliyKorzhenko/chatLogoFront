@@ -4,18 +4,18 @@ import Sidebar from './SideBar';
 import ChatWindow from './ChatWindow';
 import './Chat.css';
 import { IChatMessage, IServerMessage } from './ClientData';
-
 import { io } from 'socket.io-client';
 import { ChatClient } from './typeClient';
+import { ioServer } from './apiConfig';
 
 // Создаем подключение сокета только один раз для всего приложения
-const socket = io('http://159.203.124.0:4030', {
+const socket = io(ioServer, {
   transports: ['websocket'],
   reconnectionAttempts: 5,
   reconnectionDelay: 1000,
 });
 
-//props for chat component
+// Props for chat component
 interface ChatProps {
   email: string;
   clients: ChatClient[];
@@ -24,128 +24,151 @@ interface ChatProps {
 }
 
 const Chat = ({ id, email, clients, source }: ChatProps) => {
-  const [selectedClient, setSelectedClient] = useState<number | null>(clients[0]?.id);
+  const [selectedClient, setSelectedClient] = useState<number | null>(clients[0]?.id || null);
+  const [clientsMessages, setClientsMessages] = useState<IChatMessage[]>([]);
+  const [unreadMessages, setUnreadMessages] = useState<Record<number, number>>(() =>
+    clients.reduce((acc, client) => {
+      acc[client.id] = 0;
+      return acc;
+    }, {} as Record<number, number>)
+  );
 
-  const [clientsMessages, setClientsMessages]  = useState<IChatMessage[]>([]);
-
+  // Обработка выбора клиента
   const onSelectClient = (clientId: number) => {
-    try {
-      console.log('Selected client:', clientId);
-      setSelectedClient(clientId);
+    console.log('Selected client:', clientId);
+    setSelectedClient(clientId);
 
-      // Эмитируем событие для запроса сообщений для выбранного клиента
-      if (socket.connected) {
-        socket.emit('selectClient', { customerId: clientId, email: email, teacherId: id, source: source });
-      } else {
-        console.error('Socket is not connected');
-      }
-    } catch (error) {
-      console.log('Error selecting client:', error);
+    // Сбросить непрочитанные сообщения для выбранного клиента
+    setUnreadMessages((prev) => ({
+      ...prev,
+      [clientId]: 0,
+    }));
+
+    if (socket.connected) {
+      socket.emit('selectClient', { customerId: clientId, email, teacherId: id, source });
+    } else {
+      console.error('Socket is not connected');
     }
   };
 
+  // useEffect для управления подключением и событиями сокета
   useEffect(() => {
-    // Обработчик подключения
     const handleConnect = () => {
       console.log('Connected to server');
-      socket.emit('addNewConnection', { email: email, id: id });
+      socket.emit('addNewConnection', { email: email, id: id, teacherId: id });
     };
 
-    // Обработчик отключения
     const handleDisconnect = () => {
       console.warn('Disconnected from server');
     };
 
-    // Устанавливаем обработчики событий сокета
-    socket.on('connect', handleConnect);
-    socket.on('disconnect', handleDisconnect);
+    const handleReconnect = () => {
+      console.log('Reconnected to server');
+      socket.emit('addNewConnection', { email: email, id: id, teacherId: id });
+    };
 
-    // Обработка события получения сообщений для выбранного клиента
-    socket.on('clientMessages', (data) => {
+    // Обработка получения сообщений от сервера
+    const handleClientMessages = (data: any) => {
       console.log('Received client messages:', data);
-      let clientId = data.clientId;
-      let serverMessages = data.messages;
-      //update use clientId clientMessages
-      
-      let newMessages = serverMessages.map((msg: IServerMessage) => {
-        return {
-          clientId: clientId,
-          text: msg.messageText,
-          timestamp: new Date(msg.createdAt).toLocaleTimeString(),
+      const { clientId, messages: serverMessages } = data;
 
-          source: msg.messageType == 'tg' ? 'telegram' : 'whatsapp',
-          sender: msg.inBound ? 'client' : 'therapist',
-          id: msg.id
-        };
-      });
+      const newMessages = serverMessages.map((msg: IServerMessage) => ({
+        clientId,
+        text: msg.messageText,
+        timestamp: new Date(msg.createdAt).toLocaleTimeString(),
+        source: msg.messageType === 'tg' ? 'telegram' : 'whatsapp',
+        sender: msg.sender == 'client' ? 'client' : 'teacher',
+        id: msg.id,
+      }));
 
       setClientsMessages((prevMessages) => {
         const existingMessageIds = new Set(prevMessages.map((msg) => msg.id));
         const uniqueNewMessages = newMessages.filter((msg) => !existingMessageIds.has(msg.id));
         return [...prevMessages, ...uniqueNewMessages];
       });
-    });
-  
+    };
 
-    // Обработка новых сообщений от сервера
-    socket.on('new_message', (data) => {
-    });
+    const handleNewMessage = (data: IChatMessage) => {
+      console.log('New message received:', data);
 
-    // Очистка подключения при размонтировании компонента
+      if (data.clientId === selectedClient) {
+        // Если сообщение для текущего выбранного клиента
+        setClientsMessages((prevMessages) => [...prevMessages, data]);
+      } else {
+        // Увеличиваем счётчик непрочитанных сообщений для другого клиента
+        setUnreadMessages((prev) => ({
+          ...prev,
+          [data.clientId]: (prev[data.clientId] || 0) + 1,
+        }));
+      }
+    };
+
+    // Устанавливаем обработчики событий
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
+    socket.on('reconnect', handleReconnect);
+    socket.on('clientMessages', handleClientMessages);
+    socket.on('newMessage', handleNewMessage);
+
+    // Эмитим `addNewConnection` при монтировании, если сокет уже подключён
+    if (socket.connected) {
+      handleConnect();
+    }
+
+    // Очистка обработчиков событий
     return () => {
       console.log('Cleaning up socket listeners');
       socket.off('connect', handleConnect);
       socket.off('disconnect', handleDisconnect);
-      socket.off('clientMessages');
-      socket.off('new_message');
+      socket.off('reconnect', handleReconnect);
+      socket.off('clientMessages', handleClientMessages);
+      socket.off('newMessage', handleNewMessage);
     };
-  }, [id, email]);
+  }, [id, email, selectedClient]);
 
   const handleSendMessage = (message: string) => {
+    if (!selectedClient) {
+      console.error('No client selected');
+      return;
+    }
+
     const newMessage: IChatMessage = {
-      id: 0,
+      id: Math.max(...clientsMessages.map((msg) => msg.id), 0) + 1,
       clientId: selectedClient,
       text: message,
       timestamp: new Date().toLocaleTimeString(),
       source: 'chat',
-      sender: 'therapist',
+      sender: 'teacher',
     };
 
-    //add to clientMessages with max id
-    let maxId = Math.max(...clientsMessages.map((msg) => msg.id));
-    newMessage.id = maxId + 1;
-    //update clientMessages
-
-
-    // Отправляем сообщение на сервер
     if (socket.connected) {
-      console.log('NEW MESSAGE:', newMessage);
-      socket.emit('send_message', {
+      console.log('Sending new message:', newMessage);
+      socket.emit('message_from_teacher', {
         message: newMessage,
         teacherId: id,
         customerId: selectedClient,
       });
       setClientsMessages((prevMessages) => [...prevMessages, newMessage]);
-
     } else {
       console.error('Socket is not connected');
     }
   };
 
-  const title = source == 'ua' ? 'Мова-Промова' : (source == 'main' ? 'Говоорика' : 'Польша');
+  const title = source === 'ua' ? 'Мова-Промова' : source === 'main' ? 'Говоорика' : 'Польша';
 
   return (
     <Box display="flex" height="100vh" width="100vw" overflow="hidden">
       <Sidebar
-       email={email} 
-       clients={clients} 
-       onSelectClient={onSelectClient} 
-       title={title}
-       />
+        email={email}
+        clients={clients}
+        onSelectClient={onSelectClient}
+        unreadMessages={unreadMessages}
+        title={title}
+      />
       <ChatWindow
         selectedClient={selectedClient}
         clients={clients}
-        messages={clientsMessages}
+        messages={clientsMessages.filter((msg) => msg.clientId === selectedClient)}
         onSendMessage={handleSendMessage}
       />
     </Box>
@@ -153,3 +176,5 @@ const Chat = ({ id, email, clients, source }: ChatProps) => {
 };
 
 export default Chat;
+
+

@@ -12,6 +12,7 @@ interface ChatWindowProps {
 
 const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messages, onSendMessage }) => {
   const [newMessage, setNewMessage] = useState('');
+  console.log('ChatWindow messages:', messages);
 
   const handleSendMessage = () => {
     if (newMessage.trim() && selectedClient !== null) {

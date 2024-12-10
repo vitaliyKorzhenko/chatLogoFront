@@ -90,7 +90,7 @@ const Login: React.FC = () => {
     <div className="login-container">
       <div className="login-content">
         <img src={speechLogo} alt="Logo" className="login-logo" />
-        <h2 className="login-header">Chat for Speech Therapist</h2>
+        <h2 className="login-header">Chat for Speech teacher</h2>
         <div className="email-login">
           <div className="email-login-row">
             <input
