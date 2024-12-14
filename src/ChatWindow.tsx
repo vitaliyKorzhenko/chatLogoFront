@@ -21,6 +21,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
     }
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault(); // Предотвращаем стандартное поведение
+      handleSendMessage();
+    }
+  };
+
   return (
     <Box flexGrow={1} display="flex" flexDirection="column" bgcolor="#f0f2f5" height="100vh">
       {/* Chat Header */}
@@ -124,6 +131,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
             fullWidth
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
+            onKeyPress={handleKeyPress} // Добавлено событие для клавиши Enter
             placeholder="Type your message..."
             InputProps={{
               style: {

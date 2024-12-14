@@ -105,21 +105,21 @@ const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title
                   }}
                 >
                   <Box display="flex" alignItems="center">
+                    <Avatar sx={{ bgcolor: '#007bff', color: '#ffffff', width: 35, height: 35, mr: isMobile ? 0 : 1.5 }}>
+                      {isMobile ? client.name.slice(0, 2).toUpperCase() : client.name.charAt(0).toUpperCase()}
+                    </Avatar>
                     {!isMobile && (
-                      <Avatar sx={{ bgcolor: '#007bff', color: '#ffffff', width: 35, height: 35, mr: 1.5 }}>
-                        {client.name.charAt(0)}
-                      </Avatar>
+                      <ListItemText
+                        primary={client.name}
+                        sx={{
+                          color: '#333',
+                          fontWeight: '500',
+                          fontSize: isMobile ? '0.6rem' : '0.9rem',
+                          textAlign: isMobile ? 'center' : 'left',
+                          wordWrap: 'break-word',
+                        }}
+                      />
                     )}
-                    <ListItemText
-                      primary={client.name}
-                      sx={{
-                        color: '#333',
-                        fontWeight: '500',
-                        fontSize: isMobile ? '0.6rem' : '0.9rem',
-                        textAlign: isMobile ? 'center' : 'left',
-                        wordWrap: 'break-word',
-                      }}
-                    />
                   </Box>
                   {unreadMessages[client.id] > 0 && (
                     <Badge
