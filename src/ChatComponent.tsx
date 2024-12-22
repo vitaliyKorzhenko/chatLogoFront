@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Box } from '@mui/material';
 import Sidebar from './SideBar';
 import ChatWindow from './ChatWindow';
@@ -7,6 +7,7 @@ import { IChatMessage, IServerMessage } from './ClientData';
 import { io } from 'socket.io-client';
 import { ChatClient } from './typeClient';
 import { ioServer } from './apiConfig';
+import { BiUpArrow } from 'react-icons/bi';
 
 // Создаем подключение сокета только один раз для всего приложения
 const socket = io(ioServer, {
@@ -25,7 +26,12 @@ interface ChatProps {
 
 const Chat = ({ id, email, clients, source }: ChatProps) => {
   const [selectedClient, setSelectedClient] = useState<number | null>(clients[0]?.id || null);
-  const [clientsMessages, setClientsMessages] = useState<IChatMessage[]>([]);
+  const [clientsMessages, setClientsMessages] = useState<Record<number, IChatMessage[]>>(() =>
+    clients.reduce((acc, client) => {
+      acc[client.id] = [];
+      return acc;
+    }, {} as Record<number, IChatMessage[]>)
+  );
   const [unreadMessages, setUnreadMessages] = useState<Record<number, number>>(() =>
     clients.reduce((acc, client) => {
       acc[client.id] = 0;
@@ -50,6 +56,11 @@ const Chat = ({ id, email, clients, source }: ChatProps) => {
       console.error('Socket is not connected');
     }
   };
+
+  // Фильтрация сообщений для текущего клиента
+  const filteredMessages = useMemo(() => {
+    return selectedClient !== null ? clientsMessages[selectedClient] || [] : [];
+  }, [clientsMessages, selectedClient]);
 
   // useEffect для управления подключением и событиями сокета
   useEffect(() => {
@@ -77,30 +88,41 @@ const Chat = ({ id, email, clients, source }: ChatProps) => {
         text: msg.messageText,
         timestamp: new Date(msg.createdAt).toLocaleTimeString(),
         source: msg.messageType === 'tg' ? 'telegram' : 'whatsapp',
-        sender: msg.sender == 'client' ? 'client' : 'teacher',
+        sender: msg.sender === 'client' ? 'client' : 'teacher',
         id: msg.id,
       }));
 
-      setClientsMessages((prevMessages) => {
-        const existingMessageIds = new Set(prevMessages.map((msg) => msg.id));
-        const uniqueNewMessages = newMessages.filter((msg) => !existingMessageIds.has(msg.id));
-        return [...prevMessages, ...uniqueNewMessages];
-      });
+      setClientsMessages((prevMessages) => ({
+        ...prevMessages,
+        [clientId]: [...(prevMessages[clientId] || []), ...newMessages],
+      }));
     };
 
     const handleNewMessage = (data: IChatMessage) => {
       console.log('New message received:', data);
 
-      if (data.clientId === selectedClient) {
-        // Если сообщение для текущего выбранного клиента
-        setClientsMessages((prevMessages) => [...prevMessages, data]);
-      } else {
-        // Увеличиваем счётчик непрочитанных сообщений для другого клиента
-        setUnreadMessages((prev) => ({
-          ...prev,
-          [data.clientId]: (prev[data.clientId] || 0) + 1,
-        }));
-      }
+      setClientsMessages((prevMessages) => {
+        const clientMessages = prevMessages[data.clientId] || [];
+        const isDuplicate = clientMessages.some((msg) => msg.id === data.id);
+
+        if (!isDuplicate) {
+          const updatedMessages = {
+            ...prevMessages,
+            [data.clientId]: [...clientMessages, data],
+          };
+
+          if (data.clientId !== selectedClient) {
+            setUnreadMessages((prev) => ({
+              ...prev,
+              [data.clientId]: (prev[data.clientId] || 0) + 1,
+            }));
+          }
+
+          return updatedMessages;
+        }
+
+        return prevMessages;
+      });
     };
 
     // Устанавливаем обработчики событий
@@ -126,14 +148,14 @@ const Chat = ({ id, email, clients, source }: ChatProps) => {
     };
   }, [id, email, selectedClient]);
 
-  const handleSendMessage = (message: string) => {
+  const handleSendMessage = (message: string, isEmail: boolean = false) => {
     if (!selectedClient) {
       console.error('No client selected');
       return;
     }
 
     const newMessage: IChatMessage = {
-      id: Math.max(...clientsMessages.map((msg) => msg.id), 0) + 1,
+      id: Math.max(...Object.values(clientsMessages).flat().map((msg) => msg.id), 0) + 1,
       clientId: selectedClient,
       text: message,
       timestamp: new Date().toLocaleTimeString(),
@@ -147,14 +169,19 @@ const Chat = ({ id, email, clients, source }: ChatProps) => {
         message: newMessage,
         teacherId: id,
         customerId: selectedClient,
+        isEmail: isEmail,
       });
-      setClientsMessages((prevMessages) => [...prevMessages, newMessage]);
+
+      setClientsMessages((prevMessages) => ({
+        ...prevMessages,
+        [selectedClient]: [...(prevMessages[selectedClient] || []), newMessage],
+      }));
     } else {
       console.error('Socket is not connected');
     }
   };
 
-  const title = source === 'ua' ? 'Мова-Промова' : source === 'main' ? 'Говоорика' : 'Польша';
+  const title = source === 'ua' ? 'Мова-Промова' : source === 'main' ? 'Говорика' : 'Poland';
 
   return (
     <Box display="flex" height="100vh" width="100vw" overflow="hidden">
@@ -166,9 +193,10 @@ const Chat = ({ id, email, clients, source }: ChatProps) => {
         title={title}
       />
       <ChatWindow
+        source={'ua'}
         selectedClient={selectedClient}
         clients={clients}
-        messages={clientsMessages.filter((msg) => msg.clientId === selectedClient)}
+        messages={filteredMessages}
         onSendMessage={handleSendMessage}
       />
     </Box>
@@ -176,5 +204,3 @@ const Chat = ({ id, email, clients, source }: ChatProps) => {
 };
 
 export default Chat;
-
-

@@ -8,16 +8,26 @@ import { checkEmail, teacherInfo } from './axios/api';
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
+  const [source, setSource] = useState<string | null>(null); // Выбранный проект
 
   const handleGoogleLogin = async () => {
+    if (!source) {
+      setError('Please select a project.');
+      return;
+    }
+
+    if(source !== 'ua') {
+      setError('Not supported rigth now');
+      return;
+    }
+
     const auth = getAuth();
     const provider = new GoogleAuthProvider();
 
     try {
       const result = await signInWithPopup(auth, provider);
       console.log('Successfully logged in with Google', result);
-      
-      // Check if teacher exists in the system
+
       const userEmail = result.user.email;
       if (userEmail) {
         try {
@@ -37,6 +47,7 @@ const Login: React.FC = () => {
           }
         }
       }
+      localStorage.setItem('source', source);
     } catch (error) {
       console.error('Error during sign-in:', error);
       setError('Google sign-in failed. Please try again.');
@@ -44,18 +55,22 @@ const Login: React.FC = () => {
   };
 
   const handleFirebaseEmailLogin = async () => {
+    if (!source) {
+      setError('Please select a project.');
+      return;
+    }
+
     const auth = getAuth();
     try {
-      // Try to sign in with email and default password
       await signInWithEmailAndPassword(auth, email, '12345678');
       console.log('Successfully logged in with email');
+      localStorage.setItem('source', source);
     } catch (error: any) {
       if (error.code === 'auth/user-not-found' || 'auth/invalid-credential') {
-        // If user does not exist, create a new one
         try {
-
           await createUserWithEmailAndPassword(auth, email, '12345678');
           console.log('Successfully registered and logged in with email');
+          localStorage.setItem('source', source);
         } catch (registerError) {
           console.error('Error during email registration:', registerError);
           setError('Failed to register with provided email. Please try again.');
@@ -67,19 +82,24 @@ const Login: React.FC = () => {
     }
   };
 
-
-
   const handleEmailSubmit = async () => {
+    if (!source) {
+      setError('Please select a project.');
+      return;
+    }
+    if(source !== 'ua') {
+      setError('Not supported rigth now');
+      return;
+    }
+
     try {
       const teacher = await checkEmail(email);
       console.log('Teacher data:', teacher);
       if (teacher) {
-        // If teacher data exists, attempt to log in
         await handleFirebaseEmailLogin();
       } else {
         setError('Not Found Teacher with this email.');
       }
-
     } catch (error) {
       console.error('Error during email authentication:', error);
       setError('Email authentication failed. Please check your email and try again.');
@@ -90,7 +110,36 @@ const Login: React.FC = () => {
     <div className="login-container">
       <div className="login-content">
         <img src={speechLogo} alt="Logo" className="login-logo" />
-        <h2 className="login-header">Chat for Speech teacher</h2>
+        <h2 className="login-header">Chat for Speech Teacher</h2>
+        <div className="project-selection-row">
+          <label className="project-option ua">
+            <input
+              type="radio"
+              value="ua"
+              checked={source === 'ua'}
+              onChange={() => setSource('ua')}
+            />
+            Мова-Промова
+          </label>
+          <label className="project-option main">
+            <input
+              type="radio"
+              value="main"
+              checked={source === 'main'}
+              onChange={() => setSource('main')}
+            />
+            Говорика
+          </label>
+          <label className="project-option pl">
+            <input
+              type="radio"
+              value="pl"
+              checked={source === 'pl'}
+              onChange={() => setSource('pl')}
+            />
+            Poland
+          </label>
+        </div>
         <div className="email-login">
           <div className="email-login-row">
             <input

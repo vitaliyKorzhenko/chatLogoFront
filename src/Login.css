@@ -133,3 +133,42 @@ body {
     padding: 0.75rem;
   }
 }
+
+
+.project-selection-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.project-option {
+  font-size: 16px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.project-option.ua {
+  background-color: #007bff;
+}
+
+.project-option.main {
+  background-color: #28a745;
+}
+
+.project-option.pl {
+  background-color: #ffc107;
+}
+
+.project-option input {
+  margin-right: 8px;
+}
+
+.project-option:hover {
+  opacity: 0.9;
+}
