@@ -5,7 +5,6 @@ import {
   TextField,
   Button,
   Checkbox,
-  InputAdornment,
   FormControlLabel,
 } from '@mui/material';
 import { getLocalizationText } from './localization';
@@ -26,23 +25,22 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   messages,
   onSendMessage,
 }) => {
+  console.log('messages now', messages);
   const [newMessage, setNewMessage] = useState('');
   const [sendToEmail, setSendToEmail] = useState(false);
-
-  const templates = getLocalizationText(source, 'templates') as string[];
 
   const handleSendMessage = (message?: string) => {
     const finalMessage = message || newMessage;
     if (finalMessage.trim() && selectedClient !== null) {
       onSendMessage(finalMessage, sendToEmail);
       setNewMessage('');
-      setSendToEmail(false); // Сбрасываем чекбокс после отправки
+      setSendToEmail(false); // Reset checkbox after sending
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault(); // Предотвращаем стандартное поведение
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault(); // Prevent default behavior
       handleSendMessage();
     }
   };
@@ -76,75 +74,69 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         </Box>
       )}
 
-      {/* Chat Templates */}
-      {selectedClient && (
-        <Box
-          display="flex"
-          flexWrap="wrap"
-          gap={1}
-          p={2}
-          bgcolor="#e0e0e0"
-          borderBottom="1px solid #ccc"
-        >
-          {templates.map((template, index) => (
-            <Button
-              key={index}
-              variant="outlined"
-              size="small"
-              onClick={() => handleSendMessage(template)}
-              sx={{
-                textTransform: 'none',
-                fontSize: '0.9rem',
-                borderRadius: '8px',
-              }}
-            >
-              {template}
-            </Button>
-          ))}
-        </Box>
-      )}
-
       {/* Chat Messages */}
       <Box
-        flexGrow={1}
-        p={2}
-        overflow="auto"
-        className="chat-messages"
-        sx={{
-          fontSize: { xs: '0.8rem', sm: '1rem' },
-        }}
-      >
-        {selectedClient ? (
-          <Box>
-            {messages
-              .filter((msg) => msg.clientId === selectedClient)
-              .map((message, index) => (
-                <Box
-                  key={index}
-                  mb={2}
-                  display="flex"
-                  flexDirection={message.sender === 'client' ? 'row' : 'row-reverse'}
-                  alignItems="center"
-                >
-                  <Box
-                    bgcolor={message.sender === 'client' ? '#f1f1f1' : '#dcf8c6'}
-                    p={1.5}
-                    borderRadius="12px"
-                    maxWidth="70%"
-                  >
-                    <Typography variant="body1" sx={{ fontSize: '0.95rem', color: '#333' }}>
-                      {message.text}
-                    </Typography>
-                  </Box>
-                </Box>
-              ))}
+  flexGrow={1}
+  p={2}
+  overflow="auto"
+  className="chat-messages"
+  sx={{
+    fontSize: { xs: '0.8rem', sm: '1rem' },
+    backgroundColor: '#f9f9f9', // Серый с теплым подтоном
+  }}
+>
+  {selectedClient ? (
+    <Box>
+      {messages
+        .filter((msg) => msg.clientId === selectedClient)
+        .map((message, index) => (
+          <Box
+            key={index}
+            mb={2}
+            display="flex"
+            flexDirection={message.sender === 'client' ? 'row' : 'row-reverse'}
+            alignItems="center"
+          >
+            <Box
+              bgcolor={message.sender === 'client' ? '#D0F0C0' : '#0078D7'}
+              p={1.5}
+              borderRadius="12px"
+              maxWidth="70%"
+              boxShadow="0 2px 4px rgba(0, 0, 0, 0.1)"
+            >
+              <Typography
+                variant="body1"
+                sx={{
+                  fontSize: '0.95rem',
+                  color: message.sender === 'client' ? '#333' : '#ffffff',
+                  whiteSpace: 'pre-wrap', // Сохраняем переносы строк
+                }}
+                
+              >
+                {message.text}
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{
+                  display: 'block',
+                  marginTop: '4px',
+                  color: message.sender === 'client' ? '#666' : '#cfe8ff',
+                  textAlign: 'right',
+                }}
+              >
+                {message.timestamp}
+              </Typography>
+            </Box>
           </Box>
-        ) : (
-          <Typography variant="body1" color="textSecondary" align="center">
-            {getLocalizationText(source, 'loading')}
-          </Typography>
-        )}
-      </Box>
+        ))}
+    </Box>
+  ) : (
+    <Typography variant="body1" color="textSecondary" align="center">
+      {getLocalizationText(source, 'loading')}
+    </Typography>
+  )}
+</Box>
+
 
       {/* Message Input */}
       {selectedClient && (
@@ -153,10 +145,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           p={2}
           bgcolor="#ffffff"
           boxShadow={2}
-          sx={{
-            flexDirection: { xs: 'column', sm: 'row' },
-            gap: { xs: 1, sm: 2 },
-          }}
+          sx={{ flexDirection: 'column', gap: 1 }}
         >
           <TextField
             variant="outlined"
@@ -165,35 +154,38 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder={getLocalizationText(source, 'enterMessage').toString()}
+            multiline
+            minRows={2}
             InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Typography sx={{ color: '#0088cc', fontWeight: 'bold', mr: 1 }}>Email</Typography>
-                  <Checkbox
-                    checked={sendToEmail}
-                    onChange={(e) => setSendToEmail(e.target.checked)}
-                    color="primary"
-                  />
-                </InputAdornment>
-              ),
-            }}
-            sx={{
-              mb: { xs: 1, sm: 0 },
+              sx: { paddingRight: '120px' },
             }}
           />
-          <Button
-            variant="contained"
-            onClick={() => handleSendMessage()}
-            sx={{
-              backgroundColor: '#0088cc',
-              color: '#ffffff',
-              borderRadius: '8px',
-              fontWeight: 'bold',
-              textTransform: 'none',
-            }}
-          >
-            {getLocalizationText(source, 'send')}
-          </Button>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={sendToEmail}
+                  onChange={(e) => setSendToEmail(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label="Дублювати на email"
+              sx={{ marginRight: 'auto', color: '#333' }}
+            />
+            <Button
+              variant="contained"
+              onClick={() => handleSendMessage()}
+              sx={{
+                backgroundColor: '#0088cc',
+                color: '#ffffff',
+                borderRadius: '8px',
+                fontWeight: 'bold',
+                textTransform: 'none',
+              }}
+            >
+              {getLocalizationText(source, 'send')}
+            </Button>
+          </Box>
         </Box>
       )}
     </Box>

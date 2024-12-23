@@ -7,7 +7,6 @@ import { IChatMessage, IServerMessage } from './ClientData';
 import { io } from 'socket.io-client';
 import { ChatClient } from './typeClient';
 import { ioServer } from './apiConfig';
-import { BiUpArrow } from 'react-icons/bi';
 
 // Создаем подключение сокета только один раз для всего приложения
 const socket = io(ioServer, {
@@ -86,8 +85,10 @@ const Chat = ({ id, email, clients, source }: ChatProps) => {
       const newMessages = serverMessages.map((msg: IServerMessage) => ({
         clientId,
         text: msg.messageText,
-        timestamp: new Date(msg.createdAt).toLocaleTimeString(),
-        source: msg.messageType === 'tg' ? 'telegram' : 'whatsapp',
+        timestamp: new Date(msg.createdAt).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),        source: msg.messageType === 'tg' ? 'telegram' : 'whatsapp',
         sender: msg.sender === 'client' ? 'client' : 'teacher',
         id: msg.id,
       }));
