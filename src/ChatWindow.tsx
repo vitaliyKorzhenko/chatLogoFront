@@ -25,29 +25,27 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   messages,
   onSendMessage,
 }) => {
-  console.log('messages now', messages);
   const [newMessage, setNewMessage] = useState('');
   const [sendToEmail, setSendToEmail] = useState(false);
 
   const handleSendMessage = (message?: string) => {
-    const finalMessage = message || newMessage;
+    const finalMessage = (message || newMessage).slice(0, 250); // Ограничение длины до 250 символов
     if (finalMessage.trim() && selectedClient !== null) {
       onSendMessage(finalMessage, sendToEmail);
       setNewMessage('');
-      setSendToEmail(false); // Reset checkbox after sending
+      setSendToEmail(false); // Сбрасываем чекбокс после отправки
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault(); // Prevent default behavior
+      e.preventDefault(); // Предотвращаем стандартное поведение
       handleSendMessage();
     }
   };
 
   return (
     <Box flexGrow={1} display="flex" flexDirection="column" bgcolor="#f0f2f5" height="100vh">
-      {/* Chat Header */}
       {selectedClient && (
         <Box
           display="flex"
@@ -74,71 +72,68 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         </Box>
       )}
 
-      {/* Chat Messages */}
       <Box
-  flexGrow={1}
-  p={2}
-  overflow="auto"
-  className="chat-messages"
-  sx={{
-    fontSize: { xs: '0.8rem', sm: '1rem' },
-    backgroundColor: '#f9f9f9', // Серый с теплым подтоном
-  }}
->
-  {selectedClient ? (
-    <Box>
-      {messages
-        .filter((msg) => msg.clientId === selectedClient)
-        .map((message, index) => (
-          <Box
-            key={index}
-            mb={2}
-            display="flex"
-            flexDirection={message.sender === 'client' ? 'row' : 'row-reverse'}
-            alignItems="center"
-          >
-            <Box
-              bgcolor={message.sender === 'client' ? '#D0F0C0' : '#0078D7'}
-              p={1.5}
-              borderRadius="12px"
-              maxWidth="70%"
-              boxShadow="0 2px 4px rgba(0, 0, 0, 0.1)"
-            >
-              <Typography
-                variant="body1"
-                sx={{
-                  fontSize: '0.95rem',
-                  color: message.sender === 'client' ? '#333' : '#ffffff',
-                  whiteSpace: 'pre-wrap', // Сохраняем переносы строк
-                }}
-                
-              >
-                {message.text}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  display: 'block',
-                  marginTop: '4px',
-                  color: message.sender === 'client' ? '#666' : '#cfe8ff',
-                  textAlign: 'right',
-                }}
-              >
-                {message.timestamp}
-              </Typography>
-            </Box>
+        flexGrow={1}
+        p={2}
+        overflow="auto"
+        className="chat-messages"
+        sx={{
+          fontSize: { xs: '0.8rem', sm: '1rem' },
+          backgroundColor: '#f9f9f9',
+        }}
+      >
+        {selectedClient ? (
+          <Box>
+            {messages
+              .filter((msg) => msg.clientId === selectedClient)
+              .map((message, index) => (
+                <Box
+                  key={index}
+                  mb={2}
+                  display="flex"
+                  flexDirection={message.sender === 'client' ? 'row' : 'row-reverse'}
+                  alignItems="center"
+                >
+                  <Box
+                    bgcolor={message.sender === 'client' ? '#D0F0C0' : '#0078D7'}
+                    p={1.5}
+                    borderRadius="12px"
+                    maxWidth="70%"
+                    boxShadow="0 2px 4px rgba(0, 0, 0, 0.1)"
+                  >
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        fontSize: '0.95rem',
+                        color: message.sender === 'client' ? '#333' : '#ffffff',
+                        whiteSpace: 'pre-wrap',
+                        textAlign: 'left', // Выравниваем по левому краю
+                      }}
+                    >
+                      {message.text}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        display: 'block',
+                        marginTop: '4px',
+                        color: message.sender === 'client' ? '#666' : '#cfe8ff',
+                        textAlign: 'right',
+                      }}
+                    >
+                      {message.timestamp}
+                    </Typography>
+                  </Box>
+                </Box>
+              ))}
           </Box>
-        ))}
-    </Box>
-  ) : (
-    <Typography variant="body1" color="textSecondary" align="center">
-      {getLocalizationText(source, 'loading')}
-    </Typography>
-  )}
-</Box>
+        ) : (
+          <Typography variant="body1" color="textSecondary" align="center">
+            {getLocalizationText(source, 'loading')}
+          </Typography>
+        )}
+      </Box>
 
-
-      {/* Message Input */}
       {selectedClient && (
         <Box
           display="flex"
@@ -151,13 +146,20 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             variant="outlined"
             fullWidth
             value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
+            onChange={(e) => setNewMessage(e.target.value.slice(0, 250))} // Ограничение длины ввода
             onKeyPress={handleKeyPress}
             placeholder={getLocalizationText(source, 'enterMessage').toString()}
             multiline
             minRows={2}
+            inputProps={{
+              maxLength: 250, // Ограничение длины на уровне HTML
+            }}
             InputProps={{
               sx: { paddingRight: '120px' },
+            }}
+            helperText={`${newMessage.length}/250 cимволів`} // Добавляем информацию о длине сообщения
+            FormHelperTextProps={{
+              sx: { textAlign: 'right', color: '#666', fontSize: '0.875rem' }, // Стили для текста
             }}
           />
           <Box display="flex" justifyContent="space-between" alignItems="center">
