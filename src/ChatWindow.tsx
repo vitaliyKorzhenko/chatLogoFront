@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -28,25 +28,43 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const [newMessage, setNewMessage] = useState('');
   const [sendToEmail, setSendToEmail] = useState(false);
 
-  const handleSendMessage = (message?: string) => {
-    const finalMessage = (message || newMessage).slice(0, 250); // Ограничение длины до 250 символов
-    if (finalMessage.trim() && selectedClient !== null) {
-      onSendMessage(finalMessage, sendToEmail);
-      setNewMessage('');
-      setSendToEmail(false); // Сбрасываем чекбокс после отправки
+  // Ref для контейнера с сообщениями
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  // Прокручиваем вниз при обновлении сообщений
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
+  }, [messages]);
+
+  const handleSendMessage = (message?: string) => {
+    const finalMessage = (message || newMessage).slice(0, 250);
+    if (!finalMessage.trim()) {
+      console.error('Attempt to send empty message');
+      return;
+    }
+
+    if (selectedClient === null) {
+      console.error('No client selected - cannot send message');
+      return;
+    }
+
+    onSendMessage(finalMessage, sendToEmail);
+    setNewMessage('');
+    setSendToEmail(false);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault(); // Предотвращаем стандартное поведение
+      e.preventDefault();
       handleSendMessage();
     }
   };
 
   return (
     <Box flexGrow={1} display="flex" flexDirection="column" bgcolor="#f0f2f5" height="100vh">
-      {selectedClient && (
+      {selectedClient ? (
         <Box
           display="flex"
           alignItems="center"
@@ -67,9 +85,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               fontSize: { xs: '1rem', sm: '1.25rem' },
             }}
           >
-            {clients.find((c) => c.id === selectedClient)?.name}
+            {clients.find((c) => c.id === selectedClient)?.name || 'Unknown Client'}
           </Typography>
         </Box>
+      ) : (
+        <Typography variant="body1" color="textSecondary" align="center">
+          {getLocalizationText(source, 'loading')}
+        </Typography>
       )}
 
       <Box
@@ -84,48 +106,47 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       >
         {selectedClient ? (
           <Box>
-            {messages
-              .filter((msg) => msg.clientId === selectedClient)
-              .map((message, index) => (
+            {messages.map((message, index) => (
+              <Box
+                key={index}
+                mb={2}
+                display="flex"
+                flexDirection={message.sender === 'client' ? 'row' : 'row-reverse'}
+                alignItems="center"
+              >
                 <Box
-                  key={index}
-                  mb={2}
-                  display="flex"
-                  flexDirection={message.sender === 'client' ? 'row' : 'row-reverse'}
-                  alignItems="center"
+                  bgcolor={message.sender === 'client' ? '#D0F0C0' : '#0078D7'}
+                  p={1.5}
+                  borderRadius="12px"
+                  maxWidth="70%"
+                  boxShadow="0 2px 4px rgba(0, 0, 0, 0.1)"
                 >
-                  <Box
-                    bgcolor={message.sender === 'client' ? '#D0F0C0' : '#0078D7'}
-                    p={1.5}
-                    borderRadius="12px"
-                    maxWidth="70%"
-                    boxShadow="0 2px 4px rgba(0, 0, 0, 0.1)"
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontSize: '0.95rem',
+                      color: message.sender === 'client' ? '#333' : '#ffffff',
+                      whiteSpace: 'pre-wrap',
+                      textAlign: 'left',
+                    }}
                   >
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        fontSize: '0.95rem',
-                        color: message.sender === 'client' ? '#333' : '#ffffff',
-                        whiteSpace: 'pre-wrap',
-                        textAlign: 'left', // Выравниваем по левому краю
-                      }}
-                    >
-                      {message.text}
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        display: 'block',
-                        marginTop: '4px',
-                        color: message.sender === 'client' ? '#666' : '#cfe8ff',
-                        textAlign: 'right',
-                      }}
-                    >
-                      {message.timestamp}
-                    </Typography>
-                  </Box>
+                    {message.text}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      display: 'block',
+                      marginTop: '4px',
+                      color: message.sender === 'client' ? '#666' : '#cfe8ff',
+                      textAlign: 'right',
+                    }}
+                  >
+                    {message.timestamp}
+                  </Typography>
                 </Box>
-              ))}
+              </Box>
+            ))}
+            <div ref={messagesEndRef}></div>
           </Box>
         ) : (
           <Typography variant="body1" color="textSecondary" align="center">
@@ -146,20 +167,20 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             variant="outlined"
             fullWidth
             value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value.slice(0, 250))} // Ограничение длины ввода
+            onChange={(e) => setNewMessage(e.target.value.slice(0, 250))}
             onKeyPress={handleKeyPress}
             placeholder={getLocalizationText(source, 'enterMessage').toString()}
             multiline
             minRows={2}
             inputProps={{
-              maxLength: 250, // Ограничение длины на уровне HTML
+              maxLength: 250,
             }}
             InputProps={{
               sx: { paddingRight: '120px' },
             }}
-            helperText={`${newMessage.length}/250 cимволів`} // Добавляем информацию о длине сообщения
+            helperText={`${newMessage.length}/250 cимволів`}
             FormHelperTextProps={{
-              sx: { textAlign: 'right', color: '#666', fontSize: '0.875rem' }, // Стили для текста
+              sx: { textAlign: 'right', color: '#666', fontSize: '0.875rem' },
             }}
           />
           <Box display="flex" justifyContent="space-between" alignItems="center">

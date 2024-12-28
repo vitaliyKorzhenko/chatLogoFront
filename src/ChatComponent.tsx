@@ -77,7 +77,6 @@ const Chat = ({ id, email, clients, source }: ChatProps) => {
       socket.emit('addNewConnection', { email: email, id: id, teacherId: id });
     };
 
-    // Обработка получения сообщений от сервера
     const handleClientMessages = (data: any) => {
       console.log('Received client messages:', data);
       const { clientId, messages: serverMessages } = data;
@@ -88,7 +87,8 @@ const Chat = ({ id, email, clients, source }: ChatProps) => {
         timestamp: new Date(msg.createdAt).toLocaleTimeString([], {
           hour: '2-digit',
           minute: '2-digit',
-        }),        source: msg.messageType === 'tg' ? 'telegram' : 'whatsapp',
+        }),
+        source: msg.messageType === 'tg' ? 'telegram' : 'whatsapp',
         sender: msg.sender === 'client' ? 'client' : 'teacher',
         id: msg.id,
       }));
@@ -99,32 +99,61 @@ const Chat = ({ id, email, clients, source }: ChatProps) => {
       }));
     };
 
-    const handleNewMessage = (data: IChatMessage) => {
-      console.log('New message received:', data);
-
+    const handleNewMessage = (data: any) => {
+      console.error('Received new message:', data, selectedClient);
+    
+      // Формируем корректную структуру сообщения
+      const newMessage: IChatMessage = {
+        clientId: data.message.clientId,
+        text: data.message.text,
+        timestamp: new Date(data.message.timestamp || Date.now()).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        }), // Преобразуем дату в удобный формат
+        source: 'telegram', // Убедимся, что source корректен
+        sender: 'client',
+        id: Math.max(...Object.values(clientsMessages).flat().map((msg) => msg.id), 0) + 1, // Генерируем уникальный id
+      };
+    
+      console.error('===== NEW MESSAGE STRUCTURE =======:', newMessage);
+    
+      // Обновляем состояние сообщений
       setClientsMessages((prevMessages) => {
-        const clientMessages = prevMessages[data.clientId] || [];
-        const isDuplicate = clientMessages.some((msg) => msg.id === data.id);
-
+        const clientMessages = prevMessages[newMessage.clientId] || [];
+        //const isDuplicate = clientMessages.some((msg) => msg.id === newMessage.id);
+        const isDuplicate = false;
         if (!isDuplicate) {
           const updatedMessages = {
             ...prevMessages,
-            [data.clientId]: [...clientMessages, data],
+            [newMessage.clientId]: [...clientMessages, newMessage],
           };
-
-          if (data.clientId !== selectedClient) {
+          console.error('Updated Messages:', updatedMessages);
+    
+          // Сбрасываем непрочитанные сообщения, если клиент совпадает с выбранным
+          if (newMessage.clientId === selectedClient) {
+            console.error('Message for selected client:', newMessage);
+    
             setUnreadMessages((prev) => ({
               ...prev,
-              [data.clientId]: (prev[data.clientId] || 0) + 1,
+              [newMessage.clientId]: 0,
+            }));
+          } else {
+            // Увеличиваем количество непрочитанных сообщений
+            setUnreadMessages((prev) => ({
+              ...prev,
+              [newMessage.clientId]: (prev[newMessage.clientId] || 0) + 1,
             }));
           }
-
+    
           return updatedMessages;
         }
-
+    
+        console.error('Duplicate message detected, ignoring:', newMessage);
         return prevMessages;
       });
     };
+    
+    
 
     // Устанавливаем обработчики событий
     socket.on('connect', handleConnect);
