@@ -77,11 +77,19 @@ const Chat = ({ id, email, clients, source }: ChatProps) => {
       socket.emit('addNewConnection', { email: email, id: id, teacherId: id });
     };
 
+    
     const handleClientMessages = (data: any) => {
-      console.log('Received client messages:', data);
+      console.warn('Received client messages:', data);
       const { clientId, messages: serverMessages } = data;
-
-      const newMessages = serverMessages.map((msg: IServerMessage) => ({
+    
+      console.log('Received messages:', serverMessages);
+    
+      // Сортируем сообщения по createdAt
+      const sortedMessages = serverMessages.sort((a: IServerMessage, b: IServerMessage) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      );
+    
+      const newMessages = sortedMessages.map((msg: IServerMessage) => ({
         clientId,
         text: msg.messageText,
         timestamp: new Date(msg.createdAt).toLocaleTimeString([], {
@@ -92,12 +100,13 @@ const Chat = ({ id, email, clients, source }: ChatProps) => {
         sender: msg.sender === 'client' ? 'client' : 'teacher',
         id: msg.id,
       }));
-
+    
       setClientsMessages((prevMessages) => ({
         ...prevMessages,
         [clientId]: [...(prevMessages[clientId] || []), ...newMessages],
       }));
     };
+    
 
     const handleNewMessage = (data: any) => {
       console.error('Received new message:', data, selectedClient);
@@ -166,6 +175,15 @@ const Chat = ({ id, email, clients, source }: ChatProps) => {
     if (socket.connected) {
       handleConnect();
     }
+
+    // if (!selectedClient && Object.keys(clientsMessages).length > 0) {
+    //   //const firstClientId = Object.keys(clientsMessages)[0]; // Берём ID первого клиента
+    //   setSelectedClient(clients[0]?.id); // Устанавливаем его как выбранного
+    // }
+    // console.warn("USE EFFECT", selectedClient);
+    // if (!selectedClient){
+    //   onSelectClient(clients[0]?.id);
+    // }
 
     // Очистка обработчиков событий
     return () => {
