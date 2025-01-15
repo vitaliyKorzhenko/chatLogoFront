@@ -20,6 +20,7 @@ function App() {
 
   React.useEffect( () => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
+      console.log('Auth state changed:', user);
       if (user) {
         //save user email
         if (user.email) {
