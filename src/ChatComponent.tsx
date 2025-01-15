@@ -11,8 +11,9 @@ import { ioServer } from './apiConfig';
 // Создаём подключение только один раз
 const socket: Socket = io(ioServer, {
   transports: ['websocket'],
-  reconnectionAttempts: 5,
-  reconnectionDelay: 1000,
+  reconnection: true,
+  reconnectionAttempts: Infinity,
+  reconnectionDelay: 1000
 });
 
 interface ChatProps {
