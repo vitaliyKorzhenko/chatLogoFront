@@ -197,7 +197,7 @@ function App() {
         id: data.message.id || Date.now(),
       };
 
-      if (!isTabActive) {
+      
         try {
           console.error('Browser tab is not active, showing notification');
           showBrowserNotification('Новое Повідомлення!', {
@@ -207,7 +207,7 @@ function App() {
         } catch (error) {
           console.error('Error showing notification:', error);     
         }
-      }
+      
 
       setClientsMessages((prev) => {
         const clientMessages = prev[newMessage.clientId] || [];
@@ -243,10 +243,10 @@ function App() {
   
   useEffect(() => {
     const handleVisibilityChange = () => {
-      const visibilityState = document.visibilityState === 'visible';
-      console.log('VisibilityState:', document.visibilityState, 'isTabActive:', visibilityState);
-      console.log('Updating isTabActive to:', visibilityState);
-      setIsTabActive(visibilityState);
+      console.log('Visibility change triggered. document.hidden:', document.hidden);
+      const newTabState = !document.hidden;
+      console.log('Updating isTabActive to:', newTabState);
+      setIsTabActive(newTabState);
     };
   
     document.addEventListener('visibilitychange', handleVisibilityChange);
