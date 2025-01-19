@@ -125,6 +125,7 @@ function App() {
           }
         } else if (Notification.permission === 'granted') {
           console.log('Notifications are already allowed.');
+          testNotification();
         } else if (Notification.permission === 'denied') {
           console.warn('Notifications are already denied.');
         }
