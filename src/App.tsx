@@ -363,6 +363,7 @@ function App() {
       message: newMessage,
       teacherId,
       customerId: selectedClient,
+      isEmail: isEmail,
     });
 
     setClientsMessages((prev) => ({
