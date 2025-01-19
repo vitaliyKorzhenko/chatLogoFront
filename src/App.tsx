@@ -241,19 +241,20 @@ function App() {
   }, [socket, email, teacherId, source, selectedClient]);
 
   
-  // Следим за фокусом вкладки
   useEffect(() => {
     const handleVisibilityChange = () => {
-      console.error('Visibility change:', document.hidden);
-      setIsTabActive(!document.hidden);
+      const visibilityState = document.visibilityState === 'visible';
+      console.log('VisibilityState:', document.visibilityState, 'isTabActive:', visibilityState);
+      console.log('Updating isTabActive to:', visibilityState);
+      setIsTabActive(visibilityState);
     };
-
+  
     document.addEventListener('visibilitychange', handleVisibilityChange);
-
+  
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, []);
+  }, [])
   
   // Инициализация Firebase и загрузка данных
   useEffect(() => {
