@@ -89,8 +89,8 @@ function App() {
   // };
 
   const showBrowserNotification = (title, options) => {
-    const isTabVisible = document.visibilityState == 'visible' || !document.hidden;
-    console.log('Is tab visible:', !isTabVisible)
+    console.error('Showing browser notification:', title, options);
+    console.error('Notification.permission:', Notification.permission);
     if (Notification.permission === 'granted') {
       const notification = new Notification(title, options);
   
@@ -183,8 +183,6 @@ function App() {
     };
 
     const handleNewMessage = (data: any) => {
-      console.error('HANDLE NEW MESSAGE:');
-      console.error('IS TAB ACTIVE:', isTabActive);
       const newMessage: IChatMessage = {
         clientId: data.message.clientId,
         text: data.message.text,
@@ -199,7 +197,7 @@ function App() {
 
       
         try {
-          console.error('Browser tab is not active, showing notification');
+          console.error('START SHOWING NOTIFICATION');
           showBrowserNotification('Новое Повідомлення!', {
             body: `Повідомлення від кліента: ${newMessage.text}`,
           });
