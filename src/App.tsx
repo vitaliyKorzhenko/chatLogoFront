@@ -50,7 +50,7 @@ function App() {
     const blinker = setInterval(() => {
       const isOriginal = document.title === originalTitle;
       document.title = isOriginal
-        ? `${unreadCount} новое сообщение!`
+        ? `${unreadCount} новое повідомлення!`
         : originalTitle;
       changeFavicon(isOriginal ? alertFavicon : originalFavicon);
     }, 1000); // Меняем заголовок каждую секунду
@@ -89,12 +89,33 @@ function App() {
   // };
 
   useEffect(() => {
-    if (Notification.permission === 'default') {
-      Notification.requestPermission().catch((err) => {
-        console.error('Permission request failed:', err);
-      });
-    }
+    const checkNotificationPermission = async () => {
+      try {
+        // Проверяем текущий статус разрешения
+        console.log('Current Notification.permission:', Notification.permission);
+  
+        if (Notification.permission === 'default') {
+          const permission = await Notification.requestPermission();
+          console.log('User response to notification permission:', permission);
+  
+          if (permission === 'granted') {
+            console.log('Notifications are allowed by the user.');
+          } else if (permission === 'denied') {
+            console.warn('Notifications are denied by the user.');
+          }
+        } else if (Notification.permission === 'granted') {
+          console.log('Notifications are already allowed.');
+        } else if (Notification.permission === 'denied') {
+          console.warn('Notifications are already denied.');
+        }
+      } catch (err) {
+        console.error('Error requesting notification permission:', err);
+      }
+    };
+  
+    checkNotificationPermission();
   }, []);
+  
 
 
   // Инициализация сокета
