@@ -183,6 +183,8 @@ function App() {
     };
 
     const handleNewMessage = (data: any) => {
+      console.error('HANDLE NEW MESSAGE:');
+      console.error('IS TAB ACTIVE:', isTabActive);
       const newMessage: IChatMessage = {
         clientId: data.message.clientId,
         text: data.message.text,
