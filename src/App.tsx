@@ -73,25 +73,25 @@ function App() {
 
   const defaultTitle = 'LogoChat';
 
-  const testNotification = () => {
-    if (Notification.permission === 'granted') {
-      const notification = new Notification('Тестовое уведомление!', {
-        body: 'Если вы видите это сообщение, уведомления работают.',
-      });
+  // const testNotification = () => {
+  //   if (Notification.permission === 'granted') {
+  //     const notification = new Notification('Тестовое уведомление!', {
+  //       body: 'Если вы видите это сообщение, уведомления работают.',
+  //     });
   
-      notification.onclick = () => {
-        console.log('Уведомление было кликнуто!');
-        window.focus();
-      };
-    } else {
-      console.warn('Уведомления не разрешены!');
-    }
-  };
+  //     notification.onclick = () => {
+  //       console.log('Уведомление было кликнуто!');
+  //       window.focus();
+  //     };
+  //   } else {
+  //     console.warn('Уведомления не разрешены!');
+  //   }
+  // };
 
   const showBrowserNotification = (title, options) => {
-    const isTabVisible = document.visibilityState == 'visible';
+    const isTabVisible = document.visibilityState == 'visible' || !document.hidden;
     console.log('Is tab visible:', !isTabVisible)
-    if (Notification.permission === 'granted' && document.hidden) {
+    if (Notification.permission === 'granted' && isTabVisible) {
       const notification = new Notification(title, options);
   
       notification.onclick = () => {
@@ -121,13 +121,11 @@ function App() {
   
           if (permission === 'granted') {
             console.log('Notifications are allowed by the user.');
-            testNotification();
           } else if (permission === 'denied') {
             console.warn('Notifications are denied by the user.');
           }
         } else if (Notification.permission === 'granted') {
           console.log('Notifications are already allowed.');
-          testNotification();
         } else if (Notification.permission === 'denied') {
           console.warn('Notifications are already denied.');
         }
@@ -345,7 +343,7 @@ function App() {
     }
   };
 
-  const handleSendMessage = (message: string) => {
+  const handleSendMessage = (message: string, isEmail: boolean) => {
     if (!selectedClient) {
       console.error('No client selected');
       return;
@@ -358,6 +356,7 @@ function App() {
       timestamp: new Date().toLocaleTimeString(),
       source: 'chat',
       sender: 'teacher',
+      isEmail: isEmail,
     };
 
     socket.emit('message_from_teacher', {

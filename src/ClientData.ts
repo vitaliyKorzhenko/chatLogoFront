@@ -5,6 +5,7 @@
     source: string;
     sender: string
     id: number;
+    isEmail? : boolean;
   }
 
 

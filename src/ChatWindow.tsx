@@ -6,6 +6,7 @@ import {
   TextField,
   IconButton,
   Button,
+  Checkbox,
 } from '@mui/material';
 
 interface ChatWindowProps {
@@ -13,7 +14,7 @@ interface ChatWindowProps {
   selectedClient: number | null;
   clients: { id: number; name: string }[];
   messages: { sender: string; text: string; timestamp: string }[];
-  onSendMessage: (message: string) => void;
+  onSendMessage: (message: string, isEmail: boolean) => void;
   sx?: object; // Добавляем это свойство
 
 }
@@ -22,6 +23,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
   const [newMessage, setNewMessage] = useState('');
   const [showStickers, setShowStickers] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const [duplicateToEmail, setDuplicateToEmail] = useState(false);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -33,7 +35,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
 
   const handleSendMessage = () => {
     if (!newMessage.trim()) return;
-    onSendMessage(newMessage.trim());
+    onSendMessage(newMessage.trim(), duplicateToEmail);
     setNewMessage('');
   };
 
@@ -194,9 +196,23 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
             Send
           </Button>
         </Box>
-        <Typography variant="caption" color="textSecondary" sx={{ textAlign: 'right', mt: 1 }}>
-          {`${newMessage.length}/255`}
-        </Typography>
+        <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mt: 1 }}>
+  <Typography variant="caption" color="textSecondary">
+    {`${newMessage.length}/255`}
+  </Typography>
+  <Box display="flex" alignItems="center" gap={1}>
+    <Typography variant="caption" color="textSecondary">
+      Дублировать на email
+    </Typography>
+    <Checkbox
+      checked={duplicateToEmail}
+      onChange={(e) => setDuplicateToEmail(e.target.checked)}
+      color="primary"
+      size="small"
+    />
+  </Box>
+</Box>
+
       </Box>
   
       {/* Stickers Panel */}
