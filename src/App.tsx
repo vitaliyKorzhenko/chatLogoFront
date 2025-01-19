@@ -195,6 +195,17 @@ function App() {
         id: data.message.id || Date.now(),
       };
 
+      if (!isTabActive) {
+        try {
+          console.error('Browser tab is not active, showing notification');
+          showBrowserNotification('Новое сообщение!', {
+            body: `Повідомлення від кліента: ${newMessage.text}`,
+          });
+          
+        } catch (error) {
+          console.error('Error showing notification:', error);     
+        }
+      }
 
       setClientsMessages((prev) => {
         const clientMessages = prev[newMessage.clientId] || [];
@@ -203,12 +214,6 @@ function App() {
           [newMessage.clientId]: [...clientMessages, newMessage],
         };
       });
-
-      if (!isTabActive) {
-        showBrowserNotification('Новое сообщение!', {
-          body: `Повідомлення від кліента: ${newMessage.text}`,
-        });
-      }
 
       if (newMessage.clientId !== selectedClient ) {
         setUnreadMessages((prev) => ({
@@ -237,6 +242,7 @@ function App() {
   // Следим за фокусом вкладки
   useEffect(() => {
     const handleVisibilityChange = () => {
+      console.error('Visibility change:', document.hidden);
       setIsTabActive(!document.hidden);
     };
 
