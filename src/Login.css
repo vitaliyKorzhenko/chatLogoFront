@@ -1,7 +1,7 @@
 body {
   margin: 0;
   font-family: 'Arial', sans-serif;
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  background: #f0f2f5 !important;
 }
 
 .login-container {
@@ -18,122 +18,29 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: #ffffff;
-  padding: 3rem;
+  background: #ffffff !important;
+  padding: 2rem;
   border-radius: 16px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
   max-width: 400px;
   width: 100%;
+  position: relative;
+  top: -20px; /* Смещение вверх для поднятия логина */
 }
 
 .login-logo {
-  width: 150px;
+  width: 120px;
   height: auto;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .login-header {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: bold;
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   color: #333;
 }
-
-.email-login {
-  width: 100%;
-  margin-bottom: 1.5rem;
-}
-
-.email-login-row {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.email-input {
-  flex: 1;
-  padding: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 1rem;
-}
-
-.login-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #4facfe;
-  color: #ffffff;
-  border: none;
-  padding: 1rem 1.5rem;
-  font-size: 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: box-shadow 0.3s ease, background-color 0.3s ease;
-  text-align: center;
-}
-
-.email-login-button {
-  padding: 1rem;
-  font-size: 1rem;
-  background-color: #4facfe;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.google-login-button {
-  width: 100%;
-  background-color: #ffffff;
-  color: #757575;
-  border: 1px solid #ddd;
-  margin-top: 1rem;
-}
-
-.google-login-button:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background-color: #f7f7f7;
-}
-
-.login-button:hover {
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-  background-color: #3b8efc;
-}
-
-.google-icon {
-  margin-right: 8px;
-  font-size: 1.5rem;
-}
-
-.error-message {
-  color: #ff4d4d;
-  margin-top: 1rem;
-  font-weight: bold;
-  text-align: center;
-}
-
-@media (max-width: 480px) {
-  .login-content {
-    padding: 2rem;
-  }
-
-  .login-button,
-  .email-login-button {
-    font-size: 0.875rem;
-    padding: 0.75rem 1rem;
-  }
-
-  .login-header {
-    font-size: 1.75rem;
-  }
-
-  .email-input {
-    padding: 0.75rem;
-  }
-}
-
 
 .project-selection-row {
   display: flex;
@@ -171,4 +78,88 @@ body {
 
 .project-option:hover {
   opacity: 0.9;
+}
+
+.email-login {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.email-input {
+  flex: 1;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.login-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #007bff !important;
+  color: #ffffff !important;
+  border: none;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: box-shadow 0.3s ease, background-color 0.3s ease;
+  text-align: center;
+  margin-top: 1rem;
+  width: 100%; /* Сделать одинаковую ширину */
+  box-sizing: border-box;
+}
+
+.google-login-button {
+  width: 100%; /* Сделать одинаковую ширину */
+  background-color: #ffffff !important;
+  color: #757575 !important;
+  border: 1px solid #ddd !important;
+  margin-top: 1rem;
+  box-sizing: border-box;
+}
+
+.google-login-button:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: #f7f7f7 !important;
+}
+
+.login-button:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  background-color: #0056b3 !important;
+}
+
+.google-icon {
+  margin-right: 8px;
+  font-size: 1.5rem;
+}
+
+.error-message {
+  color: #ff4d4d;
+  margin-top: 1rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .login-content {
+    padding: 2rem;
+  }
+
+  .login-button,
+  .email-login-button {
+    font-size: 0.875rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .login-header {
+    font-size: 1.25rem;
+  }
+
+  .email-input {
+    padding: 0.75rem;
+  }
 }

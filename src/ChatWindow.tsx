@@ -1,218 +1,244 @@
+// ChatWindow.tsx
 import React, { useState, useRef, useEffect } from 'react';
 import {
   Box,
   Typography,
   TextField,
+  IconButton,
   Button,
-  Checkbox,
-  FormControlLabel,
 } from '@mui/material';
-import { getLocalizationText } from './localization';
-import { IChatMessage } from './ClientData';
 
 interface ChatWindowProps {
   source: 'ua' | 'main' | 'pl';
   selectedClient: number | null;
   clients: { id: number; name: string }[];
-  messages: IChatMessage[];
-  onSendMessage: (message: string, sendToEmail: boolean) => void;
+  messages: { sender: string; text: string; timestamp: string }[];
+  onSendMessage: (message: string) => void;
+  sx?: object; // Добавляем это свойство
+
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({
-  source,
-  selectedClient,
-  clients,
-  messages,
-  onSendMessage,
-}) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messages, onSendMessage, sx }) => {
   const [newMessage, setNewMessage] = useState('');
-  const [sendToEmail, setSendToEmail] = useState(false);
-
-  // Ref для контейнера с сообщениями
+  const [showStickers, setShowStickers] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  // Прокручиваем вниз при обновлении сообщений
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
 
-  const handleSendMessage = (message?: string) => {
-    const finalMessage = (message || newMessage).slice(0, 250);
-    if (!finalMessage.trim()) {
-      console.error('Attempt to send empty message');
-      return;
-    }
+  const stickers = ['😊', '👍', '🎉', '❤️', '😂', '😢', '🙌', '🔥', '🎁', '🤔'];
 
-    if (selectedClient === null) {
-      console.error('No client selected - cannot send message');
-      return;
-    }
-
-    onSendMessage(finalMessage, sendToEmail);
+  const handleSendMessage = () => {
+    if (!newMessage.trim()) return;
+    onSendMessage(newMessage.trim());
     setNewMessage('');
-    setSendToEmail(false);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
+  const getTelegramLink = (id: number) =>
+    `https://t.me/ChatLogoGovorikaBot?start=tg${id}sourcepromova`;
+
+  const getWhatsAppLink = (id: number) =>
+    `https://wa.me/12295449955?text=wtsp${id}sourcepromova`;
+
+  const selectedClientName = clients.find((client) => client.id === selectedClient)?.name || 'Unknown Client';
 
   return (
-    <Box flexGrow={1} display="flex" flexDirection="column" bgcolor="#f0f2f5" height="100vh">
-      {selectedClient ? (
-        <Box
-          display="flex"
-          alignItems="center"
-          p={2}
-          boxShadow={1}
-          bgcolor="#ffffff"
-          sx={{
-            flexDirection: { xs: 'column', sm: 'row' },
-            textAlign: { xs: 'center', sm: 'left' },
-          }}
-        >
-          <Typography
-            variant="h6"
+    <Box
+      display="flex"
+      flexDirection="column"
+      flexGrow={1}
+      height="100vh"
+      width="100%"
+      sx={{
+        backgroundColor: '#ffffff',
+        overflow: 'hidden',
+        ...sx, // Пользовательские стили
+      }}
+    >
+      {/* Header */}
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
+        p={2}
+        boxShadow={1}
+        bgcolor="#ffffff"
+        sx={{ position: 'sticky', top: 0, zIndex: 10 }}
+      >
+        <Typography variant="h6" fontWeight="bold">
+          {selectedClientName}
+        </Typography>
+        <Box display="flex" gap={1}>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => {
+              navigator.clipboard.writeText(getTelegramLink(selectedClient || 0));
+              //alert
+              alert('Посилання на чат в Telegram скопійовано в буфер обміну');
+
+            }}
             sx={{
-              flexGrow: 1,
-              fontWeight: 'bold',
-              color: '#333',
-              fontSize: { xs: '1rem', sm: '1.25rem' },
+              textTransform: 'none',
+              color: '#007bff',
+              borderColor: '#007bff',
+              '&:hover': {
+                backgroundColor: '#e6f7ff',
+                borderColor: '#0056b3',
+              },
             }}
           >
-            {clients.find((c) => c.id === selectedClient)?.name || 'Unknown Client'}
-          </Typography>
+            {' 🔗 Telegram'}
+          </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => 
+            {
+              navigator.clipboard.writeText(getWhatsAppLink(selectedClient || 0));
+              //alert
+              alert('Посилання на чат в WhatsApp скопійовано в буфер обміну');
+            }}
+            sx={{
+              textTransform: 'none',
+              color: '#28a745',
+              borderColor: '#28a745',
+              '&:hover': {
+                backgroundColor: '#e6ffe6',
+                borderColor: '#1d7a34',
+              },
+            }}
+          >
+            {' 🔗 WhatsApp'}
+          </Button>
         </Box>
-      ) : (
-        <Typography variant="body1" color="textSecondary" align="center">
-          {getLocalizationText(source, 'loading')}
-        </Typography>
-      )}
-
+      </Box>
+  
+      {/* Messages */}
       <Box
         flexGrow={1}
         p={2}
-        overflow="auto"
-        className="chat-messages"
         sx={{
-          fontSize: { xs: '0.8rem', sm: '1rem' },
-          backgroundColor: '#f9f9f9',
+          flexDirection: 'column',
+          display: 'flex',
+          overflowX: 'hidden',
+          margin: 0,
+          padding: 0,
         }}
       >
-        {selectedClient ? (
-          <Box>
-            {messages.map((message, index) => (
-              <Box
-                key={index}
-                mb={2}
-                display="flex"
-                flexDirection={message.sender === 'client' ? 'row' : 'row-reverse'}
-                alignItems="center"
-              >
-                <Box
-                  bgcolor={message.sender === 'client' ? '#D0F0C0' : '#0078D7'}
-                  p={1.5}
-                  borderRadius="12px"
-                  maxWidth="70%"
-                  boxShadow="0 2px 4px rgba(0, 0, 0, 0.1)"
-                >
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      fontSize: '0.95rem',
-                      color: message.sender === 'client' ? '#333' : '#ffffff',
-                      whiteSpace: 'pre-wrap',
-                      textAlign: 'left',
-                    }}
-                  >
-                    {message.text}
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      display: 'block',
-                      marginTop: '4px',
-                      color: message.sender === 'client' ? '#666' : '#cfe8ff',
-                      textAlign: 'right',
-                    }}
-                  >
-                    {message.timestamp}
-                  </Typography>
-                </Box>
-              </Box>
-            ))}
-            <div ref={messagesEndRef}></div>
+        {messages.map((message, index) => (
+          <Box
+            key={index}
+            display="flex"
+            flexDirection={message.sender === 'client' ? 'row' : 'row-reverse'}
+            mb={1}
+          >
+            <Box
+              bgcolor={message.sender === 'client' ? '#D0F0C0' : '#0078D7'}
+              p={1.5}
+              borderRadius="12px"
+              maxWidth="70%"
+              sx={{ color: message.sender === 'client' ? '#333' : '#fff' }}
+            >
+              {message.text}
+              <Typography variant="caption" display="block" textAlign="right" mt={0.5}>
+                {message.timestamp}
+              </Typography>
+            </Box>
           </Box>
-        ) : (
-          <Typography variant="body1" color="textSecondary" align="center">
-            {getLocalizationText(source, 'loading')}
-          </Typography>
-        )}
+        ))}
+        <div ref={messagesEndRef} />
       </Box>
-
-      {selectedClient && (
-        <Box
-          display="flex"
-          p={2}
-          bgcolor="#ffffff"
-          boxShadow={2}
-          sx={{ flexDirection: 'column', gap: 1 }}
-        >
+  
+      {/* Input */}
+      <Box display="flex" flexDirection="column" p={2} boxShadow={1} sx={{ flexShrink: 0, margin: 0 }}>
+        <Box display="flex" alignItems="center">
+          <IconButton
+            onClick={() => setShowStickers(!showStickers)} // Открываем/закрываем панель стикеров
+            sx={{
+              '&:focus': {
+                outline: 'none',
+              },
+              '&:hover': {
+                backgroundColor: '#e0e0e0', // Нежный серый фон при наведении
+              },
+              boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)', // Тень
+              color: '#000', // Цвет стикера
+            }}
+          >
+            😊
+          </IconButton>
           <TextField
-            variant="outlined"
             fullWidth
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value.slice(0, 250))}
-            onKeyPress={handleKeyPress}
-            placeholder={getLocalizationText(source, 'enterMessage').toString()}
+            variant="outlined"
             multiline
-            minRows={2}
-            inputProps={{
-              maxLength: 250,
+            maxRows={4}
+            value={newMessage}
+            onChange={(e) => {
+              if (e.target.value.length <= 255) {
+                setNewMessage(e.target.value);
+              }
             }}
-            InputProps={{
-              sx: { paddingRight: '120px' },
-            }}
-            helperText={`${newMessage.length}/250 cимволів`}
-            FormHelperTextProps={{
-              sx: { textAlign: 'right', color: '#666', fontSize: '0.875rem' },
+            placeholder="Type your message..."
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                handleSendMessage(); // Отправляем сообщение
+                e.preventDefault();
+              }
             }}
           />
-          <Box display="flex" justifyContent="space-between" alignItems="center">
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={sendToEmail}
-                  onChange={(e) => setSendToEmail(e.target.checked)}
-                  color="primary"
-                />
-              }
-              label="Дублювати на email"
-              sx={{ marginRight: 'auto', color: '#333' }}
-            />
-            <Button
-              variant="contained"
-              onClick={() => handleSendMessage()}
+          <Button onClick={handleSendMessage} variant="contained" sx={{ marginLeft: 1 }}>
+            Send
+          </Button>
+        </Box>
+        <Typography variant="caption" color="textSecondary" sx={{ textAlign: 'right', mt: 1 }}>
+          {`${newMessage.length}/255`}
+        </Typography>
+      </Box>
+  
+      {/* Stickers Panel */}
+      {showStickers && (
+        <Box
+          display="flex"
+          flexWrap="wrap"
+          gap={1}
+          p={1}
+          bgcolor="#ffffff"
+          sx={{
+            flexShrink: 0,
+            '& .MuiIconButton-root': {
+              outline: 'none',
+            },
+          }}
+        >
+          {stickers.map((sticker, index) => (
+            <IconButton
+              key={index}
+              onClick={() => setNewMessage((prev) => prev + sticker)} // Добавляем стикер в сообщение
               sx={{
-                backgroundColor: '#0088cc',
-                color: '#ffffff',
-                borderRadius: '8px',
-                fontWeight: 'bold',
-                textTransform: 'none',
+                '&:focus': {
+                  outline: 'none',
+                },
+                '&:hover': {
+                  backgroundColor: '#e0e0e0', // Нежный серый фон при наведении
+                },
+                boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)', // Тень
+                color: '#000', // Цвет стикера
               }}
             >
-              {getLocalizationText(source, 'send')}
-            </Button>
-          </Box>
+              {sticker}
+            </IconButton>
+          ))}
         </Box>
       )}
     </Box>
   );
+  
+  
+  
 };
 
 export default ChatWindow;

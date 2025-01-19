@@ -1,57 +1,250 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  Box
+} from '@mui/material';
 import './App.css';
 import Login from './Login';
+import Sidebar from './SideBar';
+import ChatWindow from './ChatWindow';
 import { auth } from './firebaseConfig';
-import Chat from './ChatComponent';
 import { teacherInfo } from './axios/api';
 import { ChatClient } from './typeClient';
-import { LiaChalkboardTeacherSolid } from 'react-icons/lia';
+import { IChatMessage, IServerMessage } from './ClientData';
+import socketService from './socketService';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
   const [chatClients, setChatClients] = useState<ChatClient[]>([]);
-  //email user
-  const [email, setEmail] = useState(''); // email state
-
-  const [teacherId, setTeacherId] = useState<number>(1);
-
+  const [email, setEmail] = useState(''); // Email пользователя
+  const [teacherId, setTeacherId] = useState<number>(0);
   const [source, setSource] = useState<string>('');
+  const [socketInitialized, setSocketInitialized] = useState(false); // Состояние для сокета
+  const [selectedClient, setSelectedClient] = useState<number | null>(null);
+  const [clientsMessages, setClientsMessages] = useState<Record<number, IChatMessage[]>>({});
+  const [unreadMessages, setUnreadMessages] = useState<Record<number, number>>({});
 
-  React.useEffect( () => {
+  const [titleBlinker, setTitleBlinker] = useState<ReturnType<typeof setInterval> | null>(null);
+
+  
+  
+
+  const changeFavicon = (iconUrl: string) => {
+    const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement | null;
+    if (link) {
+      link.href = iconUrl; // Обновляем href
+    } else {
+      const newLink = document.createElement('link');
+      newLink.rel = 'icon'; // Устанавливаем rel
+      newLink.href = iconUrl; // Устанавливаем href
+      document.head.appendChild(newLink); // Добавляем в <head>
+    }
+  };
+  
+  const startTitleBlinking = (unreadCount: number) => {
+    if (titleBlinker !== null) return; // Если уже мигает, ничего не делаем
+  
+    const originalTitle = defaultTitle;
+    const originalFavicon = document.querySelector("link[rel*='icon']")?.getAttribute('href') || ''; // Сохраняем текущую иконку
+    const alertFavicon = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAABnRSTlMAAAAAAABupgeRAAAAEElEQVR4AWPYdwIBAAADAAEKbgM1AAAAAElFTkSuQmCC'; // Пример пустой иконки
+  
+    const blinker = setInterval(() => {
+      const isOriginal = document.title === originalTitle;
+      document.title = isOriginal
+        ? `${unreadCount} новое сообщение!`
+        : originalTitle;
+      changeFavicon(isOriginal ? alertFavicon : originalFavicon);
+    }, 1000); // Меняем заголовок каждую секунду
+  
+    setTitleBlinker(blinker);
+  };
+
+  const stopTitleBlinking = () => {
+    if (titleBlinker !== null) {
+      clearInterval(titleBlinker);
+      setTitleBlinker(null);
+      document.title = defaultTitle; // Сбрасываем заголовок
+    }
+  };
+  
+  
+
+  const socket = socketService.socket;
+
+  const [isTabActive, setIsTabActive] = useState(true); // Вкладка активна
+  const defaultTitle = 'LogoChat';
+
+  const showBrowserNotification = (title: string, options?: NotificationOptions) => {
+    if (Notification.permission === 'granted') {
+      const notification = new Notification(title, options);
+  
+      notification.onclick = () => {
+        window.focus(); // Переводит фокус обратно на приложение
+        setIsTabActive(true); // Сбрасывает состояние вкладки
+      };
+    }
+  };
+
+  // const updateTabTitle = (hasNewMessages: boolean) => {
+  //   document.title = hasNewMessages ? '🔔 Новое сообщение!' : defaultTitle;
+  // };
+
+  useEffect(() => {
+    if (Notification.permission === 'default') {
+      Notification.requestPermission().catch((err) => {
+        console.error('Permission request failed:', err);
+      });
+    }
+  }, []);
+
+
+  // Инициализация сокета
+  useEffect(() => {
+    const handleConnect = () => {
+      console.error('Connected to socket server');
+      setSocketInitialized(true);
+      //socket.emit('addNewConnection', { email, teacherId, source });
+    };
+
+    const handleConfirmConnect = () => {
+      console.error('Confirm connection received');
+      socket.emit('addNewConnection', { email, teacherId, source });
+    };
+
+    const handleDisconnect = () => {
+      console.log('Disconnected from socket server');
+      setSocketInitialized(false);
+    };
+
+    const handleClientMessages = (data: any) => {
+      const { clientId, messages: serverMessages } = data;
+
+      const sortedMessages = serverMessages.sort((a: IServerMessage, b: IServerMessage) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      );
+
+      const newMessages = sortedMessages.map((msg: IServerMessage) => ({
+        clientId,
+        text: msg.messageText,
+        timestamp: new Date(msg.createdAt).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        source: msg.messageType === 'tg' ? 'telegram' : 'whatsapp',
+        sender: msg.sender === 'client' ? 'client' : 'teacher',
+        id: msg.id,
+      }));
+
+      setClientsMessages((prev) => ({
+        ...prev,
+        [clientId]: [...(prev[clientId] || []), ...newMessages],
+      }));
+    };
+
+    const handleNewMessage = (data: any) => {
+      const newMessage: IChatMessage = {
+        clientId: data.message.clientId,
+        text: data.message.text,
+        timestamp: new Date(data.message.timestamp || Date.now()).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        source: data.message.source || 'chat',
+        sender: 'client',
+        id: data.message.id || Date.now(),
+      };
+
+
+      setClientsMessages((prev) => {
+        const clientMessages = prev[newMessage.clientId] || [];
+        return {
+          ...prev,
+          [newMessage.clientId]: [...clientMessages, newMessage],
+        };
+      });
+
+      if (!isTabActive) {
+        showBrowserNotification('Новое сообщение!', {
+          body: `Повідомлення від кліента: ${newMessage.text}`,
+          // icon: '/icons/chat.png', // Указываем путь к иконке
+
+        });
+      }
+
+      if (newMessage.clientId !== selectedClient ) {
+        setUnreadMessages((prev) => ({
+          ...prev,
+          [newMessage.clientId]: (prev[newMessage.clientId] || 0) + 1,
+        }));
+      }
+    };
+
+    socket.on('connect', handleConnect);
+    socket.on('confirmConnection', handleConfirmConnect);
+    socket.on('disconnect', handleDisconnect);
+    socket.on('clientMessages', handleClientMessages);
+    socket.on('newMessage', handleNewMessage);
+
+    return () => {
+      socket.off('connect', handleConnect);
+      socket.off('confirmConnection', handleConfirmConnect);
+      socket.off('disconnect', handleDisconnect);
+      socket.off('clientMessages', handleClientMessages);
+      socket.off('newMessage', handleNewMessage);
+    };
+  }, [socket, email, teacherId, source, selectedClient]);
+
+  
+  // Следим за фокусом вкладки
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsTabActive(!document.hidden);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+  
+  // Инициализация Firebase и загрузка данных
+  useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
-      console.log('Auth state changed:', user);
-      if (user) {
-        //save user email
-        if (user.email) {
-          setEmail(user.email);
-        }
+      if (user && user.email) {
+        setEmail(user.email);
 
-        try {
-          teacherInfo(user.email).then((data: any) => {
-            console.log('Teacher info:', data);
-        
+        teacherInfo(user.email)
+          .then((data: any) => {
+            let clients: any;
             if (data && data.customers) {
-             let currentClients = data.customers.map((customer: any) => {
-                return {
-                  id: customer.customerId,
-                  name: customer.customerName,
-                  unread: 0
-                };
-              });
-              setChatClients(currentClients);
+              clients = data.customers.map((customer: any) => ({
+                id: customer.customerId,
+                name: customer.customerName,
+                unread: 0,
+              }));
+              setChatClients(clients);
+            
+              setClientsMessages(clients.reduce((acc, client) => {
+                acc[client.id] = [];
+                return acc;
+              }, {} as Record<number, IChatMessage[]>));
+              setUnreadMessages(clients.reduce((acc, client) => {
+                acc[client.id] = 0;
+                return acc;
+              }, {} as Record<number, number>));
+            }
+
+            if (clients && clients.length > 0) {
+              setSelectedClient(null);
             }
             setTeacherId(data.teacherId);
             setSource(data.source);
             setIsLoggedIn(true);
-          }).catch((error) => {
-            console.error('Error fetching data:', error);
+          })
+          .catch((err) => {
+            console.error('Error fetching teacher info:', err);
             setIsLoggedIn(false);
           });
-        } catch (error) {
-          console.error('Error fetching data:', error);
-        }
-        
       } else {
         setIsLoggedIn(false);
       }
@@ -60,19 +253,132 @@ function App() {
     return () => unsubscribe();
   }, []);
 
+  // Переотправка addNewConnection после загрузки данных
+  useEffect(() => {
+    if (isLoggedIn && teacherId && email && source && socketInitialized) {
+      console.log('Re-emitting addNewConnection after login and data load');
+      if (socket.connected && teacherId !== 0) {
+      socket.emit('addNewConnection', { email, teacherId, source });
+      }
+    }
+  }, [isLoggedIn, teacherId, email, source, socketInitialized]);
+
+
+
+  useEffect(() => {
+    const totalUnread = Object.values(unreadMessages).reduce((sum, count) => sum + count, 0);
+  
+    if (!isTabActive && totalUnread > 0) {
+      startTitleBlinking(totalUnread); // Запускаем мигание
+    } else {
+      stopTitleBlinking(); // Останавливаем мигание, если вкладка активна
+    }
+  }, [unreadMessages, isTabActive]);
+
+  
+  const filteredMessages = useMemo(() => {
+    return selectedClient !== null ? clientsMessages[selectedClient] || [] : [];
+  }, [clientsMessages, selectedClient]);
+
+  const onSelectClient = (clientId: number) => {
+    setSelectedClient(clientId);
+    setUnreadMessages((prev) => ({
+      ...prev,
+      [clientId]: 0,
+    }));
+
+    if (socket.connected) {
+      socket.emit('selectClient', { customerId: clientId, email, teacherId, source });
+    } else {
+      console.error('Socket is not connected');
+    }
+  };
+
+  const handleSendMessage = (message: string) => {
+    if (!selectedClient) {
+      console.error('No client selected');
+      return;
+    }
+
+    const newMessage: IChatMessage = {
+      id: Date.now(),
+      clientId: selectedClient,
+      text: message,
+      timestamp: new Date().toLocaleTimeString(),
+      source: 'chat',
+      sender: 'teacher',
+    };
+
+    socket.emit('message_from_teacher', {
+      message: newMessage,
+      teacherId,
+      customerId: selectedClient,
+    });
+
+    setClientsMessages((prev) => ({
+      ...prev,
+      [selectedClient]: [...(prev[selectedClient] || []), newMessage],
+    }));
+  };
+
+  if (!isLoggedIn || !socketInitialized) {
+    return <Login />;
+  }
+
   return (
-    <div style={{ height: '100vh', width: '100vw', display: 'flex', padding: 0, margin: 0, overflow: 'hidden', position: 'fixed', top: 0, left: 0 }}>
-      {isLoggedIn ? (
-        <Chat
-         email={email}
-         clients={chatClients}
-         id={teacherId}
-         source={source}
-          />
-      ) : (
-        <Login />
-      )}
-    </div>
+    <Box
+    display="flex"
+  height="100vh"
+  width="100vw"
+  padding="0"
+  margin="0"
+  sx={{
+    overflow: 'hidden', /* Убираем скроллы */
+    margin: 0, // Убираем возможные отступы
+  }}
+    >
+        <Box
+    sx={{
+      flexShrink: 0, /* Sidebar фиксированной ширины */
+      width: '100', /* Устанавливаем ширину Sidebar */
+      height: '100%', /* Растягиваем на всю высоту */
+      backgroundColor: '#f0f0f0', /* Пример цвета */
+      margin: 0, // Убираем возможные отступы
+    }}
+  >
+      <Sidebar
+        email={email}
+        clients={chatClients}
+        onSelectClient={onSelectClient}
+        unreadMessages={unreadMessages}
+        title={source === 'ua' ? 'Мова-Промова' : source === 'main' ? 'Говорика' : 'Poland'}
+        selectedClient={selectedClient} // Передаём выбранного клиента
+
+      />
+      </Box>
+      <Box
+    sx={{
+      flexGrow: 1, /* ChatWindow занимает оставшееся пространство */
+      height: '100%', /* Полная высота */
+      width: '100%', /* Полная ширина */
+      overflowY: 'auto', /* Вертикальный скролл для сообщений */
+      backgroundColor: '#ffffff', /* Цвет чата */
+    }}
+  >
+      <ChatWindow
+       source='ua'
+        selectedClient={selectedClient}
+        clients={chatClients}
+        messages={filteredMessages}
+        onSendMessage={handleSendMessage}
+        sx={{
+          flexGrow: 1, // Занимает все оставшееся пространство
+          overflow: 'hidden', // Убирает горизонтальный скроллинг
+          margin: 0, // Убираем возможные отступы
+        }}
+      />
+      </Box>
+    </Box>
   );
 }
 
