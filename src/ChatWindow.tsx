@@ -202,7 +202,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
   </Typography>
   <Box display="flex" alignItems="center" gap={1}>
     <Typography variant="caption" color="textSecondary">
-      Дублировать на email
+      Відправити на email
     </Typography>
     <Checkbox
       checked={duplicateToEmail}

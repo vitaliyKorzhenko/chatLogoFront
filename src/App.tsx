@@ -91,7 +91,7 @@ function App() {
   const showBrowserNotification = (title, options) => {
     const isTabVisible = document.visibilityState == 'visible' || !document.hidden;
     console.log('Is tab visible:', !isTabVisible)
-    if (Notification.permission === 'granted' && isTabVisible) {
+    if (Notification.permission === 'granted') {
       const notification = new Notification(title, options);
   
       notification.onclick = () => {
