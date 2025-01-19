@@ -73,16 +73,35 @@ function App() {
   const [isTabActive, setIsTabActive] = useState(true); // Вкладка активна
   const defaultTitle = 'LogoChat';
 
-  const showBrowserNotification = (title: string, options?: NotificationOptions) => {
+  const testNotification = () => {
     if (Notification.permission === 'granted') {
+      const notification = new Notification('Тестовое уведомление!', {
+        body: 'Если вы видите это сообщение, уведомления работают.',
+      });
+  
+      notification.onclick = () => {
+        console.log('Уведомление было кликнуто!');
+        window.focus();
+      };
+    } else {
+      console.warn('Уведомления не разрешены!');
+    }
+  };
+
+  const showBrowserNotification = (title, options) => {
+    if (Notification.permission === 'granted' && document.hidden) {
       const notification = new Notification(title, options);
   
       notification.onclick = () => {
-        window.focus(); // Переводит фокус обратно на приложение
-        setIsTabActive(true); // Сбрасывает состояние вкладки
+        console.log('Уведомление кликнуто, возвращаем фокус на приложение.');
+        window.focus();
+        setIsTabActive(true);
       };
+    } else {
+      console.warn('Уведомление не отправлено: вкладка активна или уведомления не разрешены.');
     }
   };
+
 
   // const updateTabTitle = (hasNewMessages: boolean) => {
   //   document.title = hasNewMessages ? '🔔 Новое сообщение!' : defaultTitle;
@@ -100,6 +119,7 @@ function App() {
   
           if (permission === 'granted') {
             console.log('Notifications are allowed by the user.');
+            testNotification();
           } else if (permission === 'denied') {
             console.warn('Notifications are denied by the user.');
           }
@@ -186,8 +206,6 @@ function App() {
       if (!isTabActive) {
         showBrowserNotification('Новое сообщение!', {
           body: `Повідомлення від кліента: ${newMessage.text}`,
-          // icon: '/icons/chat.png', // Указываем путь к иконке
-
         });
       }
 
