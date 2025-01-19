@@ -25,7 +25,8 @@ function App() {
 
   const [titleBlinker, setTitleBlinker] = useState<ReturnType<typeof setInterval> | null>(null);
 
-  
+  const [isTabActive, setIsTabActive] = useState(true); // Вкладка активна
+
   
 
   const changeFavicon = (iconUrl: string) => {
@@ -70,7 +71,6 @@ function App() {
 
   const socket = socketService.socket;
 
-  const [isTabActive, setIsTabActive] = useState(true); // Вкладка активна
   const defaultTitle = 'LogoChat';
 
   const testNotification = () => {
@@ -198,7 +198,7 @@ function App() {
       if (!isTabActive) {
         try {
           console.error('Browser tab is not active, showing notification');
-          showBrowserNotification('Новое сообщение!', {
+          showBrowserNotification('Новое Повідомлення!', {
             body: `Повідомлення від кліента: ${newMessage.text}`,
           });
           
