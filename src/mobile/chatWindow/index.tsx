@@ -51,6 +51,7 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
       height="100vh"
       width="100%"
       bgcolor="#f9f9f9"
+      flexGrow={1}
     >
       {/* Header */}
       <Box
@@ -60,9 +61,10 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
         py={1.5}
         bgcolor="#ffffff"
         boxShadow="0px 1px 3px rgba(0,0,0,0.1)"
-        position="sticky"
-        top={0}
-        zIndex={10}
+        sx={{ position: 'sticky', top: 0, zIndex: 10 }}
+        // position="sticky"
+        // top={0}
+        // zIndex={10}
       >
         <IconButton
           onClick={backToSidebar}
