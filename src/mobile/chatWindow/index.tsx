@@ -21,7 +21,7 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
   clients,
   messages,
   onSendMessage,
-backToSidebar,
+  backToSidebar,
 }) => {
   const [newMessage, setNewMessage] = useState('');
   const [showStickers, setShowStickers] = useState(false);
@@ -52,8 +52,8 @@ backToSidebar,
       width="100%"
       bgcolor="#f9f9f9"
     >
-           {/* Header */}
-           <Box
+      {/* Header */}
+      <Box
         display="flex"
         alignItems="center"
         px={2}
@@ -64,20 +64,18 @@ backToSidebar,
         top={0}
         zIndex={10}
       >
-<IconButton
-  onClick={backToSidebar}
-  sx={{
-    marginRight: 1,
-    color: '#007bff',
-    fontSize: '1.75rem', // Увеличиваем размер стрелки
-    fontWeight: 'bold',  // Делаем стрелку жирнее
-    padding: 0.5,        // Слегка увеличиваем кликабельную область
-  }}
->
-  ←
-</IconButton>
-
-
+        <IconButton
+          onClick={backToSidebar}
+          sx={{
+            marginRight: 1,
+            color: '#007bff',
+            fontSize: '1.75rem',
+            fontWeight: 'bold',
+            padding: 0.5,
+          }}
+        >
+          ←
+        </IconButton>
         <Typography
           variant="h6"
           fontWeight="bold"
@@ -90,7 +88,6 @@ backToSidebar,
           {selectedClientName}
         </Typography>
       </Box>
-
 
       {/* Messages */}
       <Box
@@ -108,9 +105,9 @@ backToSidebar,
             display="flex"
             flexDirection={message.sender === 'client' ? 'row' : 'row-reverse'}
             mb={1}
-          > 
+          >
             <Box
-            bgcolor={message.sender === 'client' ? '#D0F0C0' : '#0078D7'}
+              bgcolor={message.sender === 'client' ? '#D0F0C0' : '#0078D7'}
               p={1.5}
               borderRadius="10px"
               maxWidth="75%"
@@ -143,18 +140,14 @@ backToSidebar,
         <Box display="flex" alignItems="center">
           <IconButton
             onClick={() => setShowStickers(!showStickers)}
-            // sx={{ marginRight: 1 }}
             sx={{
-                marginRight: 1,
-                '&:focus': {
-                  outline: 'none',
-                },
-                '&:hover': {
-                  backgroundColor: '#e0e0e0', // Нежный серый фон при наведении
-                },
-                boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)', // Тень
-                color: '#000', // Цвет стикера
-              }}
+              marginRight: 1,
+              '&:hover': {
+                backgroundColor: '#e0e0e0',
+              },
+              boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)',
+              color: '#000',
+            }}
           >
             😊
           </IconButton>
@@ -213,14 +206,11 @@ backToSidebar,
               key={index}
               onClick={() => setNewMessage((prev) => prev + sticker)}
               sx={{
-                '&:focus': {
-                  outline: 'none',
-                },
                 '&:hover': {
-                  backgroundColor: '#e0e0e0', // Нежный серый фон при наведении
+                  backgroundColor: '#e0e0e0',
                 },
-                boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)', // Тень
-                color: '#000', // Цвет стикера
+                boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)',
+                color: '#000',
               }}
             >
               {sticker}
