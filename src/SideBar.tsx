@@ -18,7 +18,7 @@ import { useTheme } from '@mui/material/styles';
 import { auth } from './firebaseConfig';
 
 interface SidebarProps {
-  clients: { id: number; name: string }[];
+  clients: { id: number; name: string, chatEnabled: boolean }[];
   onSelectClient: (clientId: number) => void;
   email: string;
   title: string;
@@ -97,14 +97,17 @@ const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title
             {clients.map((client) => (
               <React.Fragment key={client.id}>
                 <ListItem
-                  onClick={() => onSelectClient(client.id)}
-                  sx={{
+                onClick={client.chatEnabled ? () => onSelectClient(client.id) : undefined}
+                sx={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: isMobile ? '8px' : '12px',
                     borderRadius: '8px',
-                    '&:hover': { backgroundColor: '#e3f2fd', cursor: 'pointer' },
+                    '&:hover': client.chatEnabled
+                    ? { backgroundColor: '#e3f2fd', cursor: 'pointer' }
+                    : undefined,
+                    opacity: client.chatEnabled ? 1 : 0.5, // Полупрозрачный для неактивных
                   }}
                 >
                   <Box display="flex" alignItems="center">

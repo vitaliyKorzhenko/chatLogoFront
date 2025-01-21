@@ -12,7 +12,7 @@ import {
 interface ChatWindowProps {
   source: 'ua' | 'main' | 'pl';
   selectedClient: number | null;
-  clients: { id: number; name: string }[];
+  clients: { id: number; name: string, chatEnabled: boolean }[];
   messages: { sender: string; text: string; timestamp: string }[];
   onSendMessage: (message: string, isEmail: boolean) => void;
   sx?: object; // Добавляем это свойство
@@ -46,6 +46,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
     `https://wa.me/12295449955?text=wtsp${id}sourcepromova`;
 
   const selectedClientName = clients.find((client) => client.id === selectedClient)?.name || 'Unknown Client';
+
+  //chat enabled
+  const chatEnabled = clients.find((client) => client.id === selectedClient)?.chatEnabled || false;
 
   return (
     <Box
@@ -191,10 +194,18 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
                 e.preventDefault();
               }
             }}
-          />
-          <Button onClick={handleSendMessage} variant="contained" sx={{ marginLeft: 1 }}>
+          />{
+            chatEnabled ?
+            <Button onClick={handleSendMessage} variant="contained" sx={{ marginLeft: 1 }}>
             Send
           </Button>
+          :
+           // Кнопка неактивна, если чат отключен
+          <Button disabled variant="contained" sx={{ marginLeft: 1 }}>
+            Send-(disabled)
+          </Button>
+          }
+         
         </Box>
         <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mt: 1 }}>
   <Typography variant="caption" color="textSecondary">

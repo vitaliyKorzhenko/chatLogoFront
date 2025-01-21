@@ -1,27 +1,80 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import {
-  Box
-} from '@mui/material';
-import './App.css';
-import Login from './Login';
-import Sidebar from './SideBar';
-import ChatWindow from './ChatWindow';
-import { auth } from './firebaseConfig';
-import { teacherInfo } from './axios/api';
-import { ChatClient } from './typeClient';
-import { IChatMessage, IServerMessage } from './ClientData';
-import socketService from './socketService';
+import { Box } from '@mui/material';
+import './AppMobile.css';
+import { auth } from '../firebaseConfig';
+import { teacherInfo } from '../axios/api';
+import { IChatMessage, IServerMessage } from '../ClientData';
+import Login from '../Login';
+import MobileSidebar from './sideBar';
+import MobileChatWindow from './chatWindow';
+import socketService from '../socketService';
+import { ChatClient } from '../typeClient';
 
-function App() {
+function MobileApp() {
+console.error("============= IN MOBILE APP ================")
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [chatClients, setChatClients] = useState<ChatClient[]>([]);
-  const [email, setEmail] = useState(''); // Email пользователя
+  const [email, setEmail] = useState('');
   const [teacherId, setTeacherId] = useState<number>(0);
   const [source, setSource] = useState<string>('');
-  const [socketInitialized, setSocketInitialized] = useState(false); // Состояние для сокета
+  const [socketInitialized, setSocketInitialized] = useState(false);
   const [selectedClient, setSelectedClient] = useState<number | null>(null);
   const [clientsMessages, setClientsMessages] = useState<Record<number, IChatMessage[]>>({});
   const [unreadMessages, setUnreadMessages] = useState<Record<number, number>>({});
+
+  const socket = socketService.socket;
+  const defaultTitle = 'LogoChat';
+
+
+  const onSelectClient = (clientId: number) => {
+    setSelectedClient(clientId);
+    setUnreadMessages((prev) => ({
+      ...prev,
+      [clientId]: 0,
+    }));
+
+    if (socket.connected) {
+      socket.emit('selectClient', { customerId: clientId, email, teacherId, source });
+    } else {
+      console.error('Socket is not connected');
+    }
+  };
+
+  const handleSendMessage = (message: string, isEmail: boolean) => {
+    if (!selectedClient) {
+      console.error('No client selected');
+      return;
+    }
+
+    const newMessage: IChatMessage = {
+      id: Date.now(),
+      clientId: selectedClient,
+      text: message,
+      timestamp: new Date().toLocaleTimeString(),
+      source: 'chat',
+      sender: 'teacher',
+      isEmail: isEmail,
+    };
+
+    socket.emit('message_from_teacher', {
+      message: newMessage,
+      teacherId,
+      customerId: selectedClient,
+      isEmail: isEmail,
+    });
+
+    setClientsMessages((prev) => ({
+      ...prev,
+      [selectedClient]: [...(prev[selectedClient] || []), newMessage],
+    }));
+  };
+
+
+  //back to sidebar
+  const backToSidebar = () => {
+    setSelectedClient(null);
+  }
+
 
   const [titleBlinker, setTitleBlinker] = useState<ReturnType<typeof setInterval> | null>(null);
 
@@ -66,13 +119,6 @@ function App() {
       document.title = defaultTitle; // Сбрасываем заголовок
     }
   };
-  
-  
-
-  const socket = socketService.socket;
-
-  const defaultTitle = 'LogoChat';
-
 
   const showBrowserNotification = (title, options) => {
     console.error('Showing browser notification:', title, options);
@@ -89,11 +135,6 @@ function App() {
       console.warn('Уведомление не отправлено: вкладка активна или уведомления не разрешены.');
     }
   };
-
-
-  // const updateTabTitle = (hasNewMessages: boolean) => {
-  //   document.title = hasNewMessages ? '🔔 Новое сообщение!' : defaultTitle;
-  // };
 
   useEffect(() => {
     const checkNotificationPermission = async () => {
@@ -314,48 +355,11 @@ function App() {
     return selectedClient !== null ? clientsMessages[selectedClient] || [] : [];
   }, [clientsMessages, selectedClient]);
 
-  const onSelectClient = (clientId: number) => {
-    setSelectedClient(clientId);
-    setUnreadMessages((prev) => ({
-      ...prev,
-      [clientId]: 0,
-    }));
 
-    if (socket.connected) {
-      socket.emit('selectClient', { customerId: clientId, email, teacherId, source });
-    } else {
-      console.error('Socket is not connected');
-    }
-  };
 
-  const handleSendMessage = (message: string, isEmail: boolean) => {
-    if (!selectedClient) {
-      console.error('No client selected');
-      return;
-    }
 
-    const newMessage: IChatMessage = {
-      id: Date.now(),
-      clientId: selectedClient,
-      text: message,
-      timestamp: new Date().toLocaleTimeString(),
-      source: 'chat',
-      sender: 'teacher',
-      isEmail: isEmail,
-    };
 
-    socket.emit('message_from_teacher', {
-      message: newMessage,
-      teacherId,
-      customerId: selectedClient,
-      isEmail: isEmail,
-    });
-
-    setClientsMessages((prev) => ({
-      ...prev,
-      [selectedClient]: [...(prev[selectedClient] || []), newMessage],
-    }));
-  };
+  
 
   if (!isLoggedIn || !socketInitialized) {
     return <Login />;
@@ -363,59 +367,34 @@ function App() {
 
   return (
     <Box
-    display="flex"
-  height="100vh"
-  width="100vw"
-  padding="0"
-  margin="0"
-  sx={{
-    overflow: 'hidden', /* Убираем скроллы */
-    margin: 0, // Убираем возможные отступы
-  }}
+      display="flex"
+      height="100vh"
+      width="100vw"
+      sx={{ overflow: 'hidden' }}
     >
-        <Box
-    sx={{
-      flexShrink: 0, /* Sidebar фиксированной ширины */
-      width: '100', /* Устанавливаем ширину Sidebar */
-      height: '100%', /* Растягиваем на всю высоту */
-      backgroundColor: '#f0f0f0', /* Пример цвета */
-      margin: 0, // Убираем возможные отступы
-    }}
-  >
-      <Sidebar
-        email={email}
-        clients={chatClients}
-        onSelectClient={onSelectClient}
-        unreadMessages={unreadMessages}
-        title={source === 'ua' ? 'Мова-Промова' : source === 'main' ? 'Говорика' : 'Poland'}
-        selectedClient={selectedClient} // Передаём выбранного клиента
-
-      />
-      </Box>
-      <Box
-    sx={{
-      flexGrow: 1, /* ChatWindow занимает оставшееся пространство */
-      height: '100%', /* Полная высота */
-      width: '100%', /* Полная ширина */
-      overflowY: 'auto', /* Вертикальный скролл для сообщений */
-      backgroundColor: '#ffffff', /* Цвет чата */
-    }}
-  >
-      <ChatWindow
-       source='ua'
-        selectedClient={selectedClient}
-        clients={chatClients}
-        messages={filteredMessages}
-        onSendMessage={handleSendMessage}
-        sx={{
-          flexGrow: 1, // Занимает все оставшееся пространство
-          overflow: 'hidden', // Убирает горизонтальный скроллинг
-          margin: 0, // Убираем возможные отступы
-        }}
-      />
-      </Box>
+      {selectedClient === null ? (
+        <MobileSidebar
+          email={email}
+          clients={chatClients}
+          onSelectClient={onSelectClient}
+          unreadMessages={unreadMessages}
+          title={
+            source === 'ua' ? 'Мова-Промова' : source === 'main' ? 'Говорика' : 'Poland'
+          }
+          selectedClient={selectedClient}
+        />
+      ) : (
+        <MobileChatWindow
+        backToSidebar={backToSidebar}
+        //   source="ua"
+          selectedClient={selectedClient}
+          clients={chatClients}
+          messages={filteredMessages}
+          onSendMessage={handleSendMessage}
+        />
+      )}
     </Box>
   );
 }
 
-export default App;
+export default MobileApp;
