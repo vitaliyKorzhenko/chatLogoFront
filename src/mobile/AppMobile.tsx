@@ -370,7 +370,7 @@ console.error("============= IN MOBILE APP ================")
       display="flex"
       height="100vh"
       width="100vw"
-      sx={{ overflow: 'hidden' }}
+      //sx={{ overflow: 'hidden' }}
     >
       {selectedClient === null ? (
         <MobileSidebar

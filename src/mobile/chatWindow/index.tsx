@@ -51,7 +51,8 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
       height="100vh"
       width="100%"
       bgcolor="#f9f9f9"
-      flexGrow={1}
+      overflow="visible" // Явно указываем, чтобы sticky работал
+
     >
       {/* Header */}
       <Box
