@@ -8,8 +8,8 @@ import MobileApp from './mobile/AppMobile.tsx'
 
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+  <>
     {isMobile() ? <MobileApp /> : <App />}
-  </StrictMode>
+  </>
 )
  

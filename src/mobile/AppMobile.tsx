@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Box } from '@mui/material';
+import { Box, Tabs, Tab, Badge, Typography, IconButton } from '@mui/material';
 import './AppMobile.css';
 import { auth } from '../firebaseConfig';
 import { teacherInfo } from '../axios/api';
@@ -9,9 +9,9 @@ import MobileSidebar from './sideBar';
 import MobileChatWindow from './chatWindow';
 import socketService from '../socketService';
 import { ChatClient } from '../typeClient';
+import { FiLogOut } from 'react-icons/fi';
 
 function MobileApp() {
-console.error("============= IN MOBILE APP ================")
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [chatClients, setChatClients] = useState<ChatClient[]>([]);
   const [email, setEmail] = useState('');
@@ -22,109 +22,10 @@ console.error("============= IN MOBILE APP ================")
   const [clientsMessages, setClientsMessages] = useState<Record<number, IChatMessage[]>>({});
   const [unreadMessages, setUnreadMessages] = useState<Record<number, number>>({});
   const [totalUnreadMessages, setTotalUnreadMessages] = useState(0);
-
+  const [activeTab, setActiveTab] = useState(0);
 
   const socket = socketService.socket;
-  const defaultTitle = 'LogoChat';
 
-
-  const onSelectClient = (clientId: number) => {
-    setSelectedClient(clientId);
-    setUnreadMessages((prev) => ({
-      ...prev,
-      [clientId]: 0,
-    }));
-
-    setTotalUnreadMessages((prev) => prev - (unreadMessages[clientId] || 0));
-
-
-    if (socket.connected) {
-      socket.emit('selectClient', { customerId: clientId, email, teacherId, source });
-    } else {
-      console.error('Socket is not connected');
-    }
-  };
-
-  const handleSendMessage = (message: string, isEmail: boolean) => {
-    if (!selectedClient) {
-      console.error('No client selected');
-      return;
-    }
-
-    const newMessage: IChatMessage = {
-      id: Date.now(),
-      clientId: selectedClient,
-      text: message,
-      timestamp: new Date().toLocaleTimeString(),
-      source: 'chat',
-      sender: 'teacher',
-      isEmail: isEmail,
-      format: 'text',
-    };
-
-    socket.emit('message_from_teacher', {
-      message: newMessage,
-      teacherId,
-      customerId: selectedClient,
-      isEmail: isEmail,
-    });
-
-    setClientsMessages((prev) => ({
-      ...prev,
-      [selectedClient]: [...(prev[selectedClient] || []), newMessage],
-    }));
-  };
-
-
-  //back to sidebar
-  const backToSidebar = () => {
-    setSelectedClient(null);
-  }
-
-
-  const [titleBlinker, setTitleBlinker] = useState<ReturnType<typeof setInterval> | null>(null);
-
-  const [isTabActive, setIsTabActive] = useState(true); // Вкладка активна
-
-  
-
-  const changeFavicon = (iconUrl: string) => {
-    const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement | null;
-    if (link) {
-      link.href = iconUrl; // Обновляем href
-    } else {
-      const newLink = document.createElement('link');
-      newLink.rel = 'icon'; // Устанавливаем rel
-      newLink.href = iconUrl; // Устанавливаем href
-      document.head.appendChild(newLink); // Добавляем в <head>
-    }
-  };
-  
-  const startTitleBlinking = (unreadCount: number) => {
-    if (titleBlinker !== null) return; // Если уже мигает, ничего не делаем
-  
-    const originalTitle = defaultTitle;
-    const originalFavicon = document.querySelector("link[rel*='icon']")?.getAttribute('href') || ''; // Сохраняем текущую иконку
-    const alertFavicon = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAABnRSTlMAAAAAAABupgeRAAAAEElEQVR4AWPYdwIBAAADAAEKbgM1AAAAAElFTkSuQmCC'; // Пример пустой иконки
-  
-    const blinker = setInterval(() => {
-      const isOriginal = document.title === originalTitle;
-      document.title = isOriginal
-        ? `${unreadCount} новое повідомлення!`
-        : originalTitle;
-      changeFavicon(isOriginal ? alertFavicon : originalFavicon);
-    }, 1000); // Меняем заголовок каждую секунду
-  
-    setTitleBlinker(blinker);
-  };
-
-  const stopTitleBlinking = () => {
-    if (titleBlinker !== null) {
-      clearInterval(titleBlinker);
-      setTitleBlinker(null);
-      document.title = defaultTitle; // Сбрасываем заголовок
-    }
-  };
 
   const showBrowserNotification = (title, options) => {
     console.error('Showing browser notification:', title, options);
@@ -133,14 +34,14 @@ console.error("============= IN MOBILE APP ================")
       const notification = new Notification(title, options);
   
       notification.onclick = () => {
-        console.log('Уведомление кликнуто, возвращаем фокус на приложение.');
         window.focus();
-        setIsTabActive(true);
+        // setIsTabActive(true);
       };
     } else {
       console.warn('Уведомление не отправлено: вкладка активна или уведомления не разрешены.');
     }
   };
+
 
   useEffect(() => {
     const checkNotificationPermission = async () => {
@@ -193,6 +94,11 @@ console.error("============= IN MOBILE APP ================")
     const handleClientMessages = (data: any) => {
       const { clientId, messages: serverMessages } = data;
 
+      console.log('Server Messages', serverMessages.length, 'First message', serverMessages[0]);
+
+
+
+
       const sortedMessages = serverMessages.sort((a: IServerMessage, b: IServerMessage) =>
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
       );
@@ -214,7 +120,6 @@ console.error("============= IN MOBILE APP ================")
         ...prev,
         [clientId]: [...(prev[clientId] || []), ...newMessages],
       }));
-
     };
 
     const handleNewMessage = (data: any) => {
@@ -228,7 +133,7 @@ console.error("============= IN MOBILE APP ================")
         source: data.message.source || 'chat',
         sender: 'client',
         id: data.message.id || Date.now(),
-        format: data.message.format
+        format: data.message.format || 'text',
       };
 
       
@@ -259,7 +164,6 @@ console.error("============= IN MOBILE APP ================")
       }
       //update total unread messages
       setTotalUnreadMessages((prev) => prev + 1);
-
     };
 
     socket.on('connect', handleConnect);
@@ -277,45 +181,31 @@ console.error("============= IN MOBILE APP ================")
     };
   }, [socket, email, teacherId, source, selectedClient]);
 
-  
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      console.log('Visibility change triggered. document.hidden:', document.hidden);
-      const newTabState = !document.hidden;
-      console.log('Updating isTabActive to:', newTabState);
-      setIsTabActive(newTabState);
-    };
-  
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-  
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [])
-  
+
   // Инициализация Firebase и загрузка данных
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user && user.email) {
         setEmail(user.email);
-
+       
         teacherInfo(user.email)
           .then((data: any) => {
             let clients: any;
             if (data && data.customers) {
+              console.log("CUSTOMERS", data.customers);
               clients = data.customers.map((customer: any) => ({
                 id: customer.customerId,
                 name: customer.customerName,
                 unread: customer.unreadMessages,
                 chatEnabled: customer.chatEnabled
               }));
+              console.log('======= FETCHED CLIENTS =======', clients);
               setChatClients(clients);
             
               setClientsMessages(clients.reduce((acc, client) => {
                 acc[client.id] = [];
                 return acc;
               }, {} as Record<number, IChatMessage[]>));
-             
 
               setUnreadMessages(clients.reduce((acc, client) => {
                 acc[client.id] = client.unread || 0; // Используем client.unread из данных сервера
@@ -325,13 +215,10 @@ console.error("============= IN MOBILE APP ================")
               const totalUnread = clients.reduce((sum, client) => sum + (client.unread || 0), 0);
               setTotalUnreadMessages(totalUnread);
             }
-
-            if (clients && clients.length > 0) {
-              setSelectedClient(null);
-            }
             setTeacherId(data.teacherId);
             setSource(data.source);
             setIsLoggedIn(true);
+            setActiveTab(0);
           })
           .catch((err) => {
             console.error('Error fetching teacher info:', err);
@@ -357,60 +244,141 @@ console.error("============= IN MOBILE APP ================")
 
 
 
-  useEffect(() => {
-    const totalUnread = Object.values(unreadMessages).reduce((sum, count) => sum + count, 0);
+  // useEffect(() => {
+  //   const totalUnread = Object.values(unreadMessages).reduce((sum, count) => sum + count, 0);
   
-    if (!isTabActive && totalUnread > 0) {
-      startTitleBlinking(totalUnread); // Запускаем мигание
-    } else {
-      stopTitleBlinking(); // Останавливаем мигание, если вкладка активна
+  //   if (!isTabActive && totalUnread > 0) {
+  //     startTitleBlinking(totalUnread); // Запускаем мигание
+  //   } else {
+  //     stopTitleBlinking(); // Останавливаем мигание, если вкладка активна
+  //   }
+  // }, [unreadMessages, isTabActive]);
+
+
+
+
+  const onSelectClient = (clientId: number) => {
+    console.log("SELECTED CLIENT", clientId);
+    setSelectedClient(clientId);
+    setActiveTab(1);
+
+    setUnreadMessages((prev) => ({
+      ...prev,
+      [clientId]: 0,
+    }));
+
+    setTotalUnreadMessages((prev) => prev - (unreadMessages[clientId] || 0));
+
+    socket.emit('selectClient', { customerId: clientId, email, teacherId, source });
+  };
+
+  const handleSendMessage = (message: string, isEmail: boolean) => {
+    if (!selectedClient) {
+      console.error('No client selected');
+      return;
     }
-  }, [unreadMessages, isTabActive]);
 
-  
-  const filteredMessages = useMemo(() => {
-    return selectedClient !== null ? clientsMessages[selectedClient] || [] : [];
-  }, [clientsMessages, selectedClient]);
+    const newMessage: IChatMessage = {
+      id: Date.now(),
+      clientId: selectedClient,
+      text: message,
+      timestamp: new Date().toLocaleTimeString(),
+      source: 'chat',
+      sender: 'teacher',
+      isEmail: isEmail,
+      format: 'text',
+    };
 
+    socket.emit('message_from_teacher', {
+      message: newMessage,
+      teacherId,
+      customerId: selectedClient,
+      isEmail: isEmail,
+    });
 
-
-
-
-  
+    setClientsMessages((prev) => ({
+      ...prev,
+      [selectedClient]: [...(prev[selectedClient] || []), newMessage],
+    }));
+  };
 
   if (!isLoggedIn || !socketInitialized) {
     return <Login />;
   }
 
   return (
-    <Box
-      display="flex"
-      height="100vh"
-      width="100vw"
-      //sx={{ overflow: 'hidden' }}
-    >
-      {selectedClient === null ? (
-        <MobileSidebar
-        totalUnreadMessages={totalUnreadMessages}
-          email={email}
-          clients={chatClients}
-          onSelectClient={onSelectClient}
-          unreadMessages={unreadMessages}
-          title={
-            source === 'ua' ? 'Мова-Промова' : source === 'main' ? 'Говорика' : 'Poland'
+    <Box display="flex" flexDirection="column" height="100vh">
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
+        px={2}
+        py={1.5}
+        bgcolor="#ffffff"
+        boxShadow="0px 1px 3px rgba(0,0,0,0.1)"
+      >
+        <Box>
+          <Typography
+            variant="body1"
+            sx={{ fontWeight: 'bold', color: '#333', fontSize: '1rem' }}
+          >
+            {email}
+          </Typography>
+          <Typography variant="body2" sx={{ color: '#777', fontSize: '0.85rem' }}>
+            {source === 'ua' ? 'Мова-Промова' : source === 'main' ? 'Говорика' : 'Poland'}
+          </Typography>
+        </Box>
+        <IconButton
+          color="primary"
+          size="medium"
+          onClick={async () => {
+            await auth.signOut();
+          }}
+        >
+          <FiLogOut />
+        </IconButton>
+      </Box>
+
+      <Tabs
+        value={activeTab}
+        onChange={(event, newValue) => setActiveTab(newValue)}
+        centered
+        indicatorColor="primary"
+        textColor="primary"
+      >
+        <Tab
+          label={
+            <Badge color="error" badgeContent={totalUnreadMessages}>
+              Учні
+            </Badge>
           }
-          selectedClient={selectedClient}
         />
-      ) : (
-        <MobileChatWindow
-        backToSidebar={backToSidebar}
-        //   source="ua"
-          selectedClient={selectedClient}
-          clients={chatClients}
-          messages={filteredMessages}
-          onSendMessage={handleSendMessage}
+        <Tab
+          label="Чат"
+          disabled={selectedClient === null}
         />
-      )}
+      </Tabs>
+
+      <Box flexGrow={1} overflow="hidden">
+        {activeTab === 0 && (
+          <MobileSidebar
+            clients={chatClients}
+            onSelectClient={onSelectClient}
+            unreadMessages={unreadMessages}
+            selectedClient={selectedClient}
+          />
+        )}
+
+        {activeTab === 1 && selectedClient !== null && (
+          <MobileChatWindow
+            backToSidebar={() => setActiveTab(0)}
+            selectedClient={selectedClient}
+            clients={chatClients}
+            messages={clientsMessages[selectedClient] || []}
+            onSendMessage={handleSendMessage}
+          />
+        )}
+      </Box>
     </Box>
   );
 }
