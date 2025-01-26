@@ -20,6 +20,7 @@ interface SidebarProps {
   title: string;
   unreadMessages: Record<number, number>;
   selectedClient: number | null;
+  totalUnreadMessages: number;
 }
 
 const MobileSidebar: React.FC<SidebarProps> = ({
@@ -29,6 +30,7 @@ const MobileSidebar: React.FC<SidebarProps> = ({
   title,
   unreadMessages,
   selectedClient,
+  totalUnreadMessages
 }) => {
   useEffect(() => {
     // if (clients.length > 0 && selectedClient === null) {
@@ -73,6 +75,15 @@ const MobileSidebar: React.FC<SidebarProps> = ({
             }}
           >
             {title}
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{
+              color: 'red',
+              fontSize: '0.85rem',
+            }}
+          >
+            {`Нові повідомлення: ${totalUnreadMessages}`}
           </Typography>
         </Box>
         <IconButton

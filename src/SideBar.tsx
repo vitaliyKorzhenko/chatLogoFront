@@ -25,9 +25,10 @@ interface SidebarProps {
   unreadMessages: Record<number, number>;
   selectedClient: number | null; // Новый пропс
   sx?: object;
+  totalUnreadMessages: number;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title, unreadMessages, selectedClient }) => {
+const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title, unreadMessages, selectedClient, totalUnreadMessages }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -81,11 +82,23 @@ const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title
           >
             {title}
           </Typography>
+          <Typography
+            variant="body2"
+            sx={{
+              color: 'red ',
+              fontSize: isMobile ? '0.6rem' : '0.9rem',
+              textAlign: 'center',
+
+            }}
+          >
+            {`Нові повідомлення: ${totalUnreadMessages}`}
+          </Typography>
           <IconButton color="primary" size="small" onClick={async() => {
             //firebae logout
             await auth.signOut();
             
           }}>
+            
             <FiLogOut />
           </IconButton>
         </Box>

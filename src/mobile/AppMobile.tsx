@@ -21,6 +21,8 @@ console.error("============= IN MOBILE APP ================")
   const [selectedClient, setSelectedClient] = useState<number | null>(null);
   const [clientsMessages, setClientsMessages] = useState<Record<number, IChatMessage[]>>({});
   const [unreadMessages, setUnreadMessages] = useState<Record<number, number>>({});
+  const [totalUnreadMessages, setTotalUnreadMessages] = useState(0);
+
 
   const socket = socketService.socket;
   const defaultTitle = 'LogoChat';
@@ -32,6 +34,9 @@ console.error("============= IN MOBILE APP ================")
       ...prev,
       [clientId]: 0,
     }));
+
+    setTotalUnreadMessages((prev) => prev - (unreadMessages[clientId] || 0));
+
 
     if (socket.connected) {
       socket.emit('selectClient', { customerId: clientId, email, teacherId, source });
@@ -54,6 +59,7 @@ console.error("============= IN MOBILE APP ================")
       source: 'chat',
       sender: 'teacher',
       isEmail: isEmail,
+      format: 'text',
     };
 
     socket.emit('message_from_teacher', {
@@ -201,12 +207,14 @@ console.error("============= IN MOBILE APP ================")
         source: msg.messageType === 'tg' ? 'telegram' : 'whatsapp',
         sender: msg.sender === 'client' ? 'client' : 'teacher',
         id: msg.id,
+        format: msg.format,
       }));
 
       setClientsMessages((prev) => ({
         ...prev,
         [clientId]: [...(prev[clientId] || []), ...newMessages],
       }));
+
     };
 
     const handleNewMessage = (data: any) => {
@@ -220,6 +228,7 @@ console.error("============= IN MOBILE APP ================")
         source: data.message.source || 'chat',
         sender: 'client',
         id: data.message.id || Date.now(),
+        format: data.message.format
       };
 
       
@@ -248,6 +257,9 @@ console.error("============= IN MOBILE APP ================")
           [newMessage.clientId]: (prev[newMessage.clientId] || 0) + 1,
         }));
       }
+      //update total unread messages
+      setTotalUnreadMessages((prev) => prev + 1);
+
     };
 
     socket.on('connect', handleConnect);
@@ -294,7 +306,7 @@ console.error("============= IN MOBILE APP ================")
               clients = data.customers.map((customer: any) => ({
                 id: customer.customerId,
                 name: customer.customerName,
-                unread: 0,
+                unread: customer.unreadMessages,
                 chatEnabled: customer.chatEnabled
               }));
               setChatClients(clients);
@@ -303,10 +315,15 @@ console.error("============= IN MOBILE APP ================")
                 acc[client.id] = [];
                 return acc;
               }, {} as Record<number, IChatMessage[]>));
+             
+
               setUnreadMessages(clients.reduce((acc, client) => {
-                acc[client.id] = 0;
+                acc[client.id] = client.unread || 0; // Используем client.unread из данных сервера
                 return acc;
-              }, {} as Record<number, number>));
+              }, {} as Record<number, number>))
+
+              const totalUnread = clients.reduce((sum, client) => sum + (client.unread || 0), 0);
+              setTotalUnreadMessages(totalUnread);
             }
 
             if (clients && clients.length > 0) {
@@ -374,6 +391,7 @@ console.error("============= IN MOBILE APP ================")
     >
       {selectedClient === null ? (
         <MobileSidebar
+        totalUnreadMessages={totalUnreadMessages}
           email={email}
           clients={chatClients}
           onSelectClient={onSelectClient}

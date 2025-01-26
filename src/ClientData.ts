@@ -6,6 +6,7 @@
     sender: string
     id: number;
     isEmail? : boolean;
+    format: string;
   }
 
 
@@ -26,4 +27,5 @@
     messageText: string;
     createdAt: string;
     updatedAt: string;
+    format: string;
   }

@@ -7,11 +7,12 @@ import {
   Button,
   Checkbox,
 } from '@mui/material';
+import { IChatMessage } from '../../ClientData';
 
 interface ChatWindowProps {
   selectedClient: number | null;
   clients: { id: number; name: string }[];
-  messages: { sender: string; text: string; timestamp: string }[];
+  messages: IChatMessage[];
   onSendMessage: (message: string, isEmail: boolean) => void;
   backToSidebar: () => void;
 }
@@ -40,6 +41,57 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
     if (!newMessage.trim()) return;
     onSendMessage(newMessage.trim(), duplicateToEmail);
     setNewMessage('');
+  };
+
+  const renderMessageContent = (message: IChatMessage) => {
+    switch (message.format) {
+      case 'voice':
+      case 'audio':
+        return (
+          <audio controls>
+            <source src={message.text} type="audio/mpeg" />
+            Браузер не поддерживает воспроизведение аудио.
+          </audio>
+        );
+  
+      case 'photo':
+        return <img src={message.text} alt="Photo" style={{ maxWidth: '100%', borderRadius: '8px' }} />;
+  
+      case 'document':
+        return (
+          <a href={message.text} target="_blank" rel="noopener noreferrer" style={{ color: '#007bff' }}>
+            📄 Завантажити файл від учня
+          </a>
+        );
+  
+      case 'video':
+        return (
+          <video controls style={{ maxWidth: '100%', borderRadius: '8px' }}>
+            <source src={message.text} type="video/mp4" />
+            Ваш браузер не підтримує відтворення відео.
+          </video>
+        );
+  
+      case 'video_note':
+      case 'vide_note': // Вариант кружка, как в Telegram
+        return (
+          <video
+            controls
+            style={{
+              width: '200px',
+              height: '200px',
+              borderRadius: '50%',
+              objectFit: 'cover',
+            }}
+          >
+            <source src={message.text} type="video/mp4" />
+            Ваш браузер не підтримує відтворення відео.
+          </video>
+        );
+  
+      default:
+        return <>{message.text}</>;
+    }
   };
 
   const selectedClientName = clients.find((client) => client.id === selectedClient)?.name || 'Unknown Client';
@@ -116,7 +168,8 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
               maxWidth="75%"
               sx={{ color: message.sender === 'client' ? '#333' : '#fff' }}
             >
-              {message.text}
+              {renderMessageContent(message)}
+
               <Typography
                 variant="caption"
                 display="block"

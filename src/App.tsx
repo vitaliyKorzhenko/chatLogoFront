@@ -22,6 +22,8 @@ function App() {
   const [selectedClient, setSelectedClient] = useState<number | null>(null);
   const [clientsMessages, setClientsMessages] = useState<Record<number, IChatMessage[]>>({});
   const [unreadMessages, setUnreadMessages] = useState<Record<number, number>>({});
+  const [totalUnreadMessages, setTotalUnreadMessages] = useState(0);
+
 
   const [titleBlinker, setTitleBlinker] = useState<ReturnType<typeof setInterval> | null>(null);
 
@@ -81,7 +83,6 @@ function App() {
       const notification = new Notification(title, options);
   
       notification.onclick = () => {
-        console.log('Уведомление кликнуто, возвращаем фокус на приложение.');
         window.focus();
         setIsTabActive(true);
       };
@@ -146,6 +147,11 @@ function App() {
     const handleClientMessages = (data: any) => {
       const { clientId, messages: serverMessages } = data;
 
+      console.log('Server Messages', serverMessages.length, 'First message', serverMessages[0]);
+
+
+
+
       const sortedMessages = serverMessages.sort((a: IServerMessage, b: IServerMessage) =>
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
       );
@@ -160,6 +166,7 @@ function App() {
         source: msg.messageType === 'tg' ? 'telegram' : 'whatsapp',
         sender: msg.sender === 'client' ? 'client' : 'teacher',
         id: msg.id,
+        format: msg.format,
       }));
 
       setClientsMessages((prev) => ({
@@ -179,6 +186,7 @@ function App() {
         source: data.message.source || 'chat',
         sender: 'client',
         id: data.message.id || Date.now(),
+        format: data.message.format || 'text',
       };
 
       
@@ -207,6 +215,8 @@ function App() {
           [newMessage.clientId]: (prev[newMessage.clientId] || 0) + 1,
         }));
       }
+      //update total unread messages
+      setTotalUnreadMessages((prev) => prev + 1);
     };
 
     socket.on('connect', handleConnect);
@@ -245,27 +255,33 @@ function App() {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user && user.email) {
         setEmail(user.email);
-
+       
         teacherInfo(user.email)
           .then((data: any) => {
             let clients: any;
             if (data && data.customers) {
+              console.log("CUSTOMERS", data.customers);
               clients = data.customers.map((customer: any) => ({
                 id: customer.customerId,
                 name: customer.customerName,
-                unread: 0,
+                unread: customer.unreadMessages,
                 chatEnabled: customer.chatEnabled
               }));
+              console.log('======= FETCHED CLIENTS =======', clients);
               setChatClients(clients);
             
               setClientsMessages(clients.reduce((acc, client) => {
                 acc[client.id] = [];
                 return acc;
               }, {} as Record<number, IChatMessage[]>));
+
               setUnreadMessages(clients.reduce((acc, client) => {
-                acc[client.id] = 0;
+                acc[client.id] = client.unread || 0; // Используем client.unread из данных сервера
                 return acc;
-              }, {} as Record<number, number>));
+              }, {} as Record<number, number>))
+
+              const totalUnread = clients.reduce((sum, client) => sum + (client.unread || 0), 0);
+              setTotalUnreadMessages(totalUnread);
             }
 
             if (clients && clients.length > 0) {
@@ -321,6 +337,9 @@ function App() {
       [clientId]: 0,
     }));
 
+    //update total unread messages
+    setTotalUnreadMessages((prev) => prev - (unreadMessages[clientId] || 0));
+
     if (socket.connected) {
       socket.emit('selectClient', { customerId: clientId, email, teacherId, source });
     } else {
@@ -342,6 +361,7 @@ function App() {
       source: 'chat',
       sender: 'teacher',
       isEmail: isEmail,
+      format: 'text',
     };
 
     socket.emit('message_from_teacher', {
@@ -383,6 +403,7 @@ function App() {
     }}
   >
       <Sidebar
+       totalUnreadMessages={totalUnreadMessages}
         email={email}
         clients={chatClients}
         onSelectClient={onSelectClient}
