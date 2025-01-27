@@ -347,7 +347,7 @@ function App() {
     }
   };
 
-  const handleSendMessage = (message: string, isEmail: boolean) => {
+  const handleSendMessage = (message: string, isEmail: boolean, isFile: boolean) => {
     if (!selectedClient) {
       console.error('No client selected');
       return;
@@ -361,14 +361,17 @@ function App() {
       source: 'chat',
       sender: 'teacher',
       isEmail: isEmail,
-      format: 'text',
+      format: isFile ? 'file' : 'text',
+      isFile: isFile,
     };
 
+    console.error('Sending message:', newMessage);
     socket.emit('message_from_teacher', {
       message: newMessage,
       teacherId,
       customerId: selectedClient,
       isEmail: isEmail,
+      isFile: isFile,
     });
 
     setClientsMessages((prev) => ({

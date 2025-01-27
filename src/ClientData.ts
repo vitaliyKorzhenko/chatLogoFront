@@ -7,6 +7,7 @@
     id: number;
     isEmail? : boolean;
     format: string;
+    isFile?: boolean;
   }
 
 

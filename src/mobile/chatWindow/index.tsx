@@ -8,12 +8,13 @@ import {
   Checkbox,
 } from '@mui/material';
 import { IChatMessage } from '../../ClientData';
+import DigitalOceanHelper from '../../digitalOceans';
 
 interface ChatWindowProps {
   selectedClient: number | null;
   clients: { id: number; name: string }[];
   messages: IChatMessage[];
-  onSendMessage: (message: string, isEmail: boolean) => void;
+  onSendMessage: (message: string, isEmail: boolean, isFile: boolean) => void;
   backToSidebar: () => void;
 }
 
@@ -29,6 +30,31 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [duplicateToEmail, setDuplicateToEmail] = useState(false);
 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null); // Состояние для выбранного файла
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      console.log('Selected file:', file);
+
+      try {
+        // Вызов вашей функции загрузки файла
+        const uploadedUrl = await DigitalOceanHelper.uploadFileElementToSpaces(
+          file,
+          'govorikavideo', 
+          'chatLogo'
+        );
+        console.log('Uploaded URL:', uploadedUrl);
+        onSendMessage(uploadedUrl, duplicateToEmail, true);
+        setNewMessage('');
+
+      } catch (error) {
+        console.error('Failed to upload file:', error);
+      }
+    }
+  }
+
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -39,7 +65,7 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
 
   const handleSendMessage = () => {
     if (!newMessage.trim()) return;
-    onSendMessage(newMessage.trim(), duplicateToEmail);
+    onSendMessage(newMessage.trim(), duplicateToEmail, false);
     setNewMessage('');
   };
 
@@ -56,11 +82,20 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
   
       case 'photo':
         return <img src={message.text} alt="Photo" style={{ maxWidth: '100%', borderRadius: '8px' }} />;
+      
+      case 'image':
+        return <img src={message.text} alt="Photo" style={{ maxWidth: '100%', borderRadius: '8px' }} />;
   
       case 'document':
         return (
           <a href={message.text} target="_blank" rel="noopener noreferrer" style={{ color: '#007bff' }}>
-            📄 Завантажити файл від учня
+            📄 Завантажити файл 
+          </a>
+        );
+      case 'file':
+       return (
+          <a href={message.text} target="_blank" rel="noopener noreferrer" style={{ color: '#007bff' }}>
+            📄 Завантажити файл 
           </a>
         );
   
@@ -93,6 +128,7 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
         return <>{message.text}</>;
     }
   };
+  
 
   const selectedClientName = clients.find((client) => client.id === selectedClient)?.name || 'Unknown Client';
 
@@ -162,7 +198,13 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
             mb={1}
           >
             <Box
-              bgcolor={message.sender === 'client' ? '#D0F0C0' : '#0078D7'}
+             bgcolor={
+              message.format === 'text'
+                ? message.sender === 'client'
+                  ? '#D0F0C0' // Цвет для клиента
+                  : '#0078D7' // Цвет для сервера/бота
+                : '#FFFFFF' // Белый для всех остальных форматов
+            }
               p={1.5}
               borderRadius="10px"
               maxWidth="75%"
@@ -221,6 +263,32 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
               }
             }}
           />
+ <IconButton
+  component="label"
+  sx={{
+    marginLeft: 1,
+    fontSize: '18px', // Размер текста для скрепки
+    cursor: 'pointer',
+    padding: '8px',
+    border: '1px solid #ccc',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f5f5f5',
+    '&:hover': {
+      backgroundColor: '#e0e0e0',
+    },
+  }}
+>
+  📎 {/* Используем emoji-скрепку */}
+  <input
+    type="file"
+    hidden
+    onChange={handleFileChange} // Обработчик выбора файла
+  />
+</IconButton>
+
           <Button
             onClick={handleSendMessage}
             variant="contained"
