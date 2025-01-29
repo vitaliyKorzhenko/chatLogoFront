@@ -17,7 +17,7 @@ function App() {
   const [chatClients, setChatClients] = useState<ChatClient[]>([]);
   const [email, setEmail] = useState(''); // Email пользователя
   const [teacherId, setTeacherId] = useState<number>(0);
-  const [source, setSource] = useState<string>('');
+  const [source, setSource] = useState<string>('ua');
   const [socketInitialized, setSocketInitialized] = useState(false); // Состояние для сокета
   const [selectedClient, setSelectedClient] = useState<number | null>(null);
   const [clientsMessages, setClientsMessages] = useState<Record<number, IChatMessage[]>>({});
@@ -29,7 +29,7 @@ function App() {
 
   const [isTabActive, setIsTabActive] = useState(true); // Вкладка активна
 
-  
+  const [loginSource, setLoginSource] = useState<string | null>('ua');
 
   const changeFavicon = (iconUrl: string) => {
     const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement | null;
@@ -42,6 +42,11 @@ function App() {
       document.head.appendChild(newLink); // Добавляем в <head>
     }
   };
+
+  const updateSource = (source: string) => {
+    console.error('Updating source:', source);
+    setLoginSource(source);
+  }
   
   const startTitleBlinking = (unreadCount: number) => {
     if (titleBlinker !== null) return; // Если уже мигает, ничего не делаем
@@ -125,6 +130,11 @@ function App() {
   }, []);
   
 
+
+  // Логирование после обновления
+useEffect(() => {
+  console.error('SOURCE UPDATED:', loginSource); // Гарантированно обновлённое значение
+}, [loginSource]);
 
   // Инициализация сокета
   useEffect(() => {
@@ -232,7 +242,7 @@ function App() {
       socket.off('clientMessages', handleClientMessages);
       socket.off('newMessage', handleNewMessage);
     };
-  }, [socket, email, teacherId, source, selectedClient]);
+  }, [socket, email, teacherId,selectedClient]);
 
   
   useEffect(() => {
@@ -254,9 +264,10 @@ function App() {
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user && user.email) {
-        setEmail(user.email);
-       
-        teacherInfo(user.email)
+      console.error('BEFORE TEACHER INFO ======', user.email, loginSource);
+      //get source from local storage
+      let currentSource = localStorage.getItem('source');
+        teacherInfo(user.email, currentSource)
           .then((data: any) => {
             let clients: any;
             if (data && data.customers) {
@@ -287,6 +298,8 @@ function App() {
             if (clients && clients.length > 0) {
               setSelectedClient(null);
             }
+          
+            setEmail(user.email);
             setTeacherId(data.teacherId);
             setSource(data.source);
             setIsLoggedIn(true);
@@ -341,6 +354,7 @@ function App() {
     setTotalUnreadMessages((prev) => prev - (unreadMessages[clientId] || 0));
 
     if (socket.connected) {
+      console.error('Emitting selectClient:', clientId, email, teacherId, source);
       socket.emit('selectClient', { customerId: clientId, email, teacherId, source });
     } else {
       console.error('Socket is not connected');
@@ -372,6 +386,7 @@ function App() {
       customerId: selectedClient,
       isEmail: isEmail,
       isFile: isFile,
+      source: source,
     });
 
     setClientsMessages((prev) => ({
@@ -381,7 +396,7 @@ function App() {
   };
 
   if (!isLoggedIn || !socketInitialized) {
-    return <Login />;
+    return <Login updateSource={updateSource} />;
   }
 
   return (

@@ -10,9 +10,10 @@ export const fetchData = async () => {
   }
 };
 
-export const teacherInfo = async (email: string) => {
+export const teacherInfo = async (email: string, source: string) => {
+  console.error('teacherInfo', email, source);
   try {
-    const response = await axiosInstance.post('/teacher/info', {email: email});
+    const response = await axiosInstance.post('/teacher/info', {email: email, source: source});
     console.log('Response: teacher info', response.data);
     return response.data;
   } catch (error) {
@@ -24,9 +25,9 @@ export const teacherInfo = async (email: string) => {
 //check email 
 // /teacher/email
 
-export const checkEmail = async (email: string) => {
+export const checkEmail = async (email: string, source: string) => {
   try {
-    const response = await axiosInstance.post('/teacher/email', {email: email});
+    const response = await axiosInstance.post('/teacher/email', {email: email, source: source});
     console.log('Response: check email', response.data);
     return response.data;
   } catch (error) {
