@@ -73,8 +73,20 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
   };
 
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (!messagesEndRef.current) return;
+  
+    const chatContainer = messagesEndRef.current.parentElement;
+    if (!chatContainer) return;
+  
+    // Проверяем, находится ли пользователь внизу перед обновлением
+    const isAtBottom =
+      chatContainer.scrollHeight - chatContainer.scrollTop <= chatContainer.clientHeight + 50;
+  
+    if (isAtBottom) {
+      // Прокручиваем вниз, если пользователь был внизу
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 0);
     }
   }, [messages]);
 

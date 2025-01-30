@@ -10,6 +10,7 @@ import MobileChatWindow from './chatWindow';
 import socketService from '../socketService';
 import { ChatClient } from '../typeClient';
 import { FiLogOut } from 'react-icons/fi';
+import { createTitle } from '../helpers';
 
 function MobileApp() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -349,7 +350,7 @@ function MobileApp() {
             {email}
           </Typography>
           <Typography variant="body2" sx={{ color: '#777', fontSize: '0.85rem' }}>
-          {source === 'ua' ? 'Мова-Промова' : source === 'ru' ? 'Main' : 'Poland'}
+          {createTitle(source)}
           </Typography>
         </Box>
         <IconButton

@@ -11,6 +11,7 @@ import { teacherInfo } from './axios/api';
 import { ChatClient } from './typeClient';
 import { IChatMessage, IServerMessage } from './ClientData';
 import socketService from './socketService';
+import { createTitle } from './helpers';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -434,7 +435,7 @@ useEffect(() => {
         clients={chatClients}
         onSelectClient={onSelectClient}
         unreadMessages={unreadMessages}
-        title={source === 'ua' ? 'Мова-Промова' : source === 'ru' ? 'Main' : 'Poland'}
+        title={createTitle(source)}
         selectedClient={selectedClient} // Передаём выбранного клиента
 
       />
