@@ -8,6 +8,7 @@ import {
   Divider,
   Badge,
   useMediaQuery,
+  Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 
@@ -91,19 +92,50 @@ const Sidebar: React.FC<SidebarProps> = ({
         overflow: 'hidden',
       }}
     >
-      <ListItemText
-        primary={client.name}
-        sx={{
-          color: '#333',
-          fontWeight: '500',
-          fontSize: '0.9rem',
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          marginRight: '8px', // Добавляем отступ перед бейджем
-          maxWidth: 'calc(100% - 30px)', // Учитываем место для бейджа
-        }}
-      />
+        <ListItem
+                onClick={client.chatEnabled ? () => onSelectClient(client.id) : undefined}
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: isMobile ? '8px' : '12px',
+                    borderRadius: '8px',
+                    '&:hover': client.chatEnabled
+                    ? { backgroundColor: '#e3f2fd', cursor: 'pointer' }
+                    : undefined,
+                    opacity: client.chatEnabled ? 1 : 0.5, // Полупрозрачный для неактивных
+                  }}
+                >
+                  <Box display="flex" alignItems="center">
+                    
+                    <ListItemText
+  primary={
+    <Box component="span">
+      {client.name}{' '}
+      {!client.chatEnabled ? (
+        <Typography
+          component="span"
+          sx={{ color: 'red', fontWeight: 'bold', fontSize: '0.85rem' }}
+        >
+          Not Active
+        </Typography>
+      ) : null}
+    </Box>
+  }
+  sx={{
+    color: '#333',
+    fontWeight: 500,
+    fontSize: '0.9rem',
+    marginLeft: '10px',
+  }}
+/>
+
+                  
+                  </Box>
+                  {unreadMessages[client.id] > 0 && (
+                    <Badge badgeContent={unreadMessages[client.id]} color="error" />
+                  )}
+                </ListItem>
       {unreadMessages[client.id] > 0 && (
         <Badge
           badgeContent={unreadMessages[client.id]}

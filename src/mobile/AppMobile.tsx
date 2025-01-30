@@ -27,6 +27,15 @@ function MobileApp() {
   const socket = socketService.socket;
 
 
+  const [loginSource, setLoginSource] = useState<string | null>('ua');
+
+
+  const updateSource = (source: string) => {
+    console.error('Updating source:', source);
+    setLoginSource(source);
+  }
+
+
   const showBrowserNotification = (title, options) => {
     console.error('Showing browser notification:', title, options);
     console.error('Notification.permission:', Notification.permission);
@@ -187,8 +196,9 @@ function MobileApp() {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user && user.email) {
         setEmail(user.email);
-       
-        teacherInfo(user.email)
+        let currentSource = localStorage.getItem('source');
+
+        teacherInfo(user.email, currentSource)
           .then((data: any) => {
             let clients: any;
             if (data && data.customers) {
@@ -258,18 +268,29 @@ function MobileApp() {
 
 
   const onSelectClient = (clientId: number) => {
-    console.log("SELECTED CLIENT", clientId);
     setSelectedClient(clientId);
     setActiveTab(1);
 
+  
+    // Очищаем сообщения перед загрузкой новых
+    setClientsMessages((prev) => ({
+      ...prev,
+      [clientId]: [],
+    }));
+  
     setUnreadMessages((prev) => ({
       ...prev,
       [clientId]: 0,
     }));
-
-    setTotalUnreadMessages((prev) => prev - (unreadMessages[clientId] || 0));
-
-    socket.emit('selectClient', { customerId: clientId, email, teacherId, source });
+  
+    setTotalUnreadMessages(Object.values(unreadMessages).reduce((sum, count) => sum + count, 0));
+  
+    if (socket.connected) {
+      console.error('Emitting selectClient:', clientId, email, teacherId, source);
+      socket.emit('selectClient', { customerId: clientId, email, teacherId, source });
+    } else {
+      console.error('Socket is not connected');
+    }
   };
 
   const handleSendMessage = (message: string, isEmail: boolean, isFile: boolean) => {
@@ -306,7 +327,7 @@ function MobileApp() {
   };
 
   if (!isLoggedIn || !socketInitialized) {
-    return <Login />;
+    return <Login updateSource={updateSource} />;
   }
 
   return (
@@ -328,7 +349,7 @@ function MobileApp() {
             {email}
           </Typography>
           <Typography variant="body2" sx={{ color: '#777', fontSize: '0.85rem' }}>
-            {source === 'ua' ? 'Мова-Промова' : source === 'main' ? 'Говорика' : 'Poland'}
+          {source === 'ua' ? 'Мова-Промова' : source === 'ru' ? 'Main' : 'Poland'}
           </Typography>
         </Box>
         <IconButton
@@ -352,12 +373,12 @@ function MobileApp() {
         <Tab
           label={
             <Badge color="error" badgeContent={totalUnreadMessages}>
-              Учні
+              Clients
             </Badge>
           }
         />
         <Tab
-          label="Чат"
+          label="Chat"
           disabled={selectedClient === null}
         />
       </Tabs>

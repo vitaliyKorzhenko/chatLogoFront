@@ -91,7 +91,7 @@ const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title
 
             }}
           >
-            {`Нові повідомлення: ${totalUnreadMessages}`}
+            {`New Messages: ${totalUnreadMessages}`}
           </Typography>
           <IconButton color="primary" size="small" onClick={async() => {
             //firebae logout
@@ -127,17 +127,30 @@ const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title
                     <Avatar sx={{ bgcolor: '#007bff', color: '#fff', width: 35, height: 35 }}>
                       {client.name.slice(0, 2).toUpperCase()}
                     </Avatar>
-                    {!isMobile && (
-                      <ListItemText
-                        primary={client.name}
-                        sx={{
-                          color: '#333',
-                          fontWeight: '500',
-                          fontSize: '0.9rem',
-                          marginLeft: '10px',
-                        }}
-                      />
-                    )}
+                    
+                    <ListItemText
+  primary={
+    <Box component="span">
+      {client.name}{' '}
+      {!client.chatEnabled ? (
+        <Typography
+          component="span"
+          sx={{ color: 'red', fontWeight: 'bold', fontSize: '0.85rem' }}
+        >
+          Not Active
+        </Typography>
+      ) : null}
+    </Box>
+  }
+  sx={{
+    color: '#333',
+    fontWeight: 500,
+    fontSize: '0.9rem',
+    marginLeft: '10px',
+  }}
+/>
+
+                  
                   </Box>
                   {unreadMessages[client.id] > 0 && (
                     <Badge badgeContent={unreadMessages[client.id]} color="error" />

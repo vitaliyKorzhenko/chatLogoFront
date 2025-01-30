@@ -32,28 +32,45 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null); // Состояние для выбранного файла
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setSelectedFile(file);
-      console.log('Selected file:', file);
-
+      setSelectedFileName(file.name); // Показываем имя файла в поле ввода
+      setNewMessage(file.name); // Вставляем имя в `TextField`
+    }
+  };
+  
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() && !selectedFile) return; // Нельзя отправить пустое сообщение
+  
+    if (selectedFile) {
       try {
-        // Вызов вашей функции загрузки файла
+        console.log('Uploading file:', selectedFile);
         const uploadedUrl = await DigitalOceanHelper.uploadFileElementToSpaces(
-          file,
-          'govorikavideo', 
+          selectedFile,
+          'govorikavideo',
           'chatLogo'
         );
         console.log('Uploaded URL:', uploadedUrl);
+        
         onSendMessage(uploadedUrl, duplicateToEmail, true);
-        setNewMessage('');
-
       } catch (error) {
         console.error('Failed to upload file:', error);
       }
+  
+      // Очищаем после отправки
+      setSelectedFile(null);
+      setSelectedFileName(null);
+      setNewMessage('');
+    } else {
+      onSendMessage(newMessage.trim(), duplicateToEmail, false);
+      setNewMessage('');
     }
-  }
+  };
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -63,11 +80,7 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
 
   const stickers = ['😊', '👍', '🎉', '❤️', '😂', '😢', '🙌', '🔥', '🎁', '🤔'];
 
-  const handleSendMessage = () => {
-    if (!newMessage.trim()) return;
-    onSendMessage(newMessage.trim(), duplicateToEmail, false);
-    setNewMessage('');
-  };
+
 
   const renderMessageContent = (message: IChatMessage) => {
     switch (message.format) {

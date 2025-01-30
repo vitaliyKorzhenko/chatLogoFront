@@ -17,7 +17,7 @@ function App() {
   const [chatClients, setChatClients] = useState<ChatClient[]>([]);
   const [email, setEmail] = useState(''); // Email пользователя
   const [teacherId, setTeacherId] = useState<number>(0);
-  const [source, setSource] = useState<string>('ua');
+  const [source, setSource] = useState<string>('');
   const [socketInitialized, setSocketInitialized] = useState(false); // Состояние для сокета
   const [selectedClient, setSelectedClient] = useState<number | null>(null);
   const [clientsMessages, setClientsMessages] = useState<Record<number, IChatMessage[]>>({});
@@ -271,7 +271,6 @@ useEffect(() => {
           .then((data: any) => {
             let clients: any;
             if (data && data.customers) {
-              console.log("CUSTOMERS", data.customers);
               clients = data.customers.map((customer: any) => ({
                 id: customer.customerId,
                 name: customer.customerName,
@@ -298,7 +297,7 @@ useEffect(() => {
             if (clients && clients.length > 0) {
               setSelectedClient(null);
             }
-          
+            console.error("SET SOURCE AND EMAIL", data)
             setEmail(user.email);
             setTeacherId(data.teacherId);
             setSource(data.source);
@@ -345,14 +344,20 @@ useEffect(() => {
 
   const onSelectClient = (clientId: number) => {
     setSelectedClient(clientId);
+  
+    // Очищаем сообщения перед загрузкой новых
+    setClientsMessages((prev) => ({
+      ...prev,
+      [clientId]: [],
+    }));
+  
     setUnreadMessages((prev) => ({
       ...prev,
       [clientId]: 0,
     }));
-
-    //update total unread messages
-    setTotalUnreadMessages((prev) => prev - (unreadMessages[clientId] || 0));
-
+  
+    setTotalUnreadMessages(Object.values(unreadMessages).reduce((sum, count) => sum + count, 0));
+  
     if (socket.connected) {
       console.error('Emitting selectClient:', clientId, email, teacherId, source);
       socket.emit('selectClient', { customerId: clientId, email, teacherId, source });
@@ -360,7 +365,7 @@ useEffect(() => {
       console.error('Socket is not connected');
     }
   };
-
+  
   const handleSendMessage = (message: string, isEmail: boolean, isFile: boolean) => {
     if (!selectedClient) {
       console.error('No client selected');
@@ -399,6 +404,9 @@ useEffect(() => {
     return <Login updateSource={updateSource} />;
   }
 
+  //console.error("========= SORUCE BEFORE RENDER", source);
+
+
   return (
     <Box
     display="flex"
@@ -426,7 +434,7 @@ useEffect(() => {
         clients={chatClients}
         onSelectClient={onSelectClient}
         unreadMessages={unreadMessages}
-        title={source === 'ua' ? 'Мова-Промова' : source === 'main' ? 'Говорика' : 'Poland'}
+        title={source === 'ua' ? 'Мова-Промова' : source === 'ru' ? 'Main' : 'Poland'}
         selectedClient={selectedClient} // Передаём выбранного клиента
 
       />
@@ -441,7 +449,7 @@ useEffect(() => {
     }}
   >
       <ChatWindow
-       source='ua'
+       source={source}
         selectedClient={selectedClient}
         clients={chatClients}
         messages={filteredMessages}

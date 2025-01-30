@@ -13,7 +13,7 @@ import { IChatMessage } from './ClientData';
 import DigitalOceanHelper from './digitalOceans';
 
 interface ChatWindowProps {
-  source: 'ua' | 'main' | 'pl';
+  source: string;
   selectedClient: number | null;
   clients: { id: number; name: string, chatEnabled: boolean }[];
   messages: IChatMessage[];
@@ -22,60 +22,91 @@ interface ChatWindowProps {
 
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messages, onSendMessage, sx }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messages, onSendMessage, sx, source}) => {
   const [newMessage, setNewMessage] = useState('');
   const [showStickers, setShowStickers] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [duplicateToEmail, setDuplicateToEmail] = useState(false);
 
+  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
 
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null); // Состояние для выбранного файла
 
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setSelectedFile(file);
-      console.log('Selected file:', file);
-
+      setSelectedFileName(file.name); // Показываем имя файла в поле ввода
+      setNewMessage(file.name); // Вставляем имя в `TextField`
+    }
+  };
+  
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() && !selectedFile) return; // Нельзя отправить пустое сообщение
+  
+    if (selectedFile) {
       try {
-        // Вызов вашей функции загрузки файла
+        console.log('Uploading file:', selectedFile);
         const uploadedUrl = await DigitalOceanHelper.uploadFileElementToSpaces(
-          file,
-          'govorikavideo', 
+          selectedFile,
+          'govorikavideo',
           'chatLogo'
         );
         console.log('Uploaded URL:', uploadedUrl);
+        
         onSendMessage(uploadedUrl, duplicateToEmail, true);
-        setNewMessage('');
-
       } catch (error) {
         console.error('Failed to upload file:', error);
       }
+  
+      // Очищаем после отправки
+      setSelectedFile(null);
+      setSelectedFileName(null);
+      setNewMessage('');
+    } else {
+      onSendMessage(newMessage.trim(), duplicateToEmail, false);
+      setNewMessage('');
     }
-  }
-
+  };
+  
+  
 
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (!messagesEndRef.current) return;
+  
+    const chatContainer = messagesEndRef.current.parentElement;
+    if (!chatContainer) return;
+  
+    // Проверяем, находится ли пользователь внизу перед обновлением
+    const isAtBottom =
+      chatContainer.scrollHeight - chatContainer.scrollTop <= chatContainer.clientHeight + 50;
+  
+    if (isAtBottom) {
+      // Прокручиваем вниз, если пользователь был внизу
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 0);
     }
   }, [messages]);
+  
+
 
   const stickers = ['😊', '👍', '🎉', '❤️', '😂', '😢', '🙌', '🔥', '🎁', '🤔'];
 
-  const handleSendMessage = () => {
-    if (!newMessage.trim()) return;
-    onSendMessage(newMessage.trim(), duplicateToEmail, false);
-    setNewMessage('');
-  };
 
-  const getTelegramLink = (id: number) =>
-    `https://t.me/ChatLogoGovorikaBot?start=tg${id}sourcepromova`;
+  
 
-  const getWhatsAppLink = (id: number) =>
-    `https://wa.me/12295449955?text=wtsp${id}sourcepromova`;
+  const getTelegramLink = (id: number) => {
+    let project = source === 'ua' ? 'promova' : source === 'pl' ? 'poland' : 'main';
+    return `https://t.me/ChatLogoGovorikaBot?start=tg${id}source` + project;
+  }
+
+  const getWhatsAppLink = (id: number) => {
+    let project = source === 'ua' ? 'promova' : source === 'pl' ? 'poland' : 'main';
+   return `https://wa.me/12295449955?text=wtsp${id}source` + project;
+  }
 
   const selectedClientName = clients.find((client) => client.id === selectedClient)?.name || 'Unknown Client';
 
@@ -317,7 +348,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
   <input
     type="file"
     hidden
-    onChange={handleFileChange} // Обработчик выбора файла
+    onChange={handleFileChange}
+   // onChange={handleFileChange} // Обработчик выбора файла
   />
 </IconButton>
 
@@ -342,7 +374,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
   </Typography>
   <Box display="flex" alignItems="center" gap={1}>
     <Typography variant="caption" color="textSecondary">
-      Відправити на email
+     {"Send via email"}
     </Typography>
     <Checkbox
       checked={duplicateToEmail}
