@@ -122,43 +122,79 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
         <div ref={messagesEndRef} />
       </Box>
 
-      {/* Input */}
-      <Box display="flex" flexDirection="column" px={2} py={1.5} boxShadow="0 -1px 3px rgba(0,0,0,0.1)" bgcolor="#ffffff">
-        <Box display="flex" alignItems="center">
-          <IconButton onClick={() => setShowStickers(!showStickers)} sx={{ marginRight: 1 }}>😊</IconButton>
-          <TextField
-            fullWidth
-            variant="outlined"
-            multiline
-            maxRows={4}
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Type your message..."
-            sx={{ whiteSpace: 'pre-wrap' }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                //handleSendMessage();
-                e.preventDefault();
-                setNewMessage((prev) => prev + '\n'); // Добавляем перенос строки
-              }
+    {/* Input */}
+{/* Input */}
+{/* Input */}
+<Box display="flex" flexDirection="column" px={2} py={1.5} boxShadow="0 -1px 3px rgba(0,0,0,0.1)" bgcolor="#ffffff">
+
+  {/* Поле ввода с кнопкой отправки внутри */}
+  <Box display="flex" alignItems="center" bgcolor="#f1f1f1" borderRadius="25px" px={2} py={1}>
+    <TextField
+      fullWidth
+      variant="standard"
+      multiline
+      minRows={1}
+      maxRows={6}
+      value={newMessage}
+      onChange={(e) => setNewMessage(e.target.value)}
+      placeholder="Type a message..."
+      InputProps={{
+        disableUnderline: true, // Убираем стандартную линию под текстом
+        endAdornment: (
+          <IconButton 
+            onClick={handleSendMessage}
+            sx={{
+              bgcolor: '#007bff',
+              color: '#fff',
+              borderRadius: '50%',
+              width: '40px',
+              height: '40px',
+              ml: 1, // Отступ слева от текста
+              '&:hover': { bgcolor: '#0056b3' }
             }}
-          />
-          <IconButton component="label">
-            📎
-            <input type="file" hidden onChange={handleFileChange} />
+          >
+            ➤
           </IconButton>
-          <Button onClick={handleSendMessage} variant="contained" sx={{ marginLeft: 1 }}>
-            Send
-          </Button>
-        </Box>
-        <Box display="flex" justifyContent="space-between" mt={1}>
-          <Typography variant="caption">{`${newMessage.length}/255`}</Typography>
-          <Box display="flex" alignItems="center">
-            <Typography variant="caption">Send via Email</Typography>
-            <Checkbox size="small" checked={duplicateToEmail} onChange={(e) => setDuplicateToEmail(e.target.checked)} />
-          </Box>
-        </Box>
-      </Box>
+        ),
+      }}
+      sx={{
+        flexGrow: 1,
+        '& .MuiInputBase-root': {
+          padding: '10px 0',
+        },
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          setNewMessage((prev) => prev + '\n');
+        }
+      }}
+    />
+  </Box>
+
+  {/* Нижняя панель (Смайлик, Скрепка, Email) */}
+  <Box display="flex" alignItems="center" justifyContent="space-between" mt={1}>
+
+    {/* Смайлик и Скрепка */}
+    <Box display="flex" gap={1}>
+      <IconButton onClick={() => setShowStickers(!showStickers)} sx={{ color: '#f39c12' }}>
+        😊
+      </IconButton>
+      <IconButton component="label" sx={{ color: '#007bff' }}>
+        📎
+        <input type="file" hidden onChange={handleFileChange} />
+      </IconButton>
+    </Box>
+
+    {/* Send via Email */}
+    <Box display="flex" alignItems="center">
+      <Typography variant="caption">Send via Email</Typography>
+      <Checkbox size="small" checked={duplicateToEmail} onChange={(e) => setDuplicateToEmail(e.target.checked)} />
+    </Box>
+  </Box>
+</Box>
+
+
 
       {/* Stickers */}
       {showStickers && (
