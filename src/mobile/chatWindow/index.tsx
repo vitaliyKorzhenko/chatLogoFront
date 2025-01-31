@@ -135,12 +135,12 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type your message..."
             sx={{ whiteSpace: 'pre-wrap' }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                handleSendMessage();
-                e.preventDefault();
-              }
-            }}
+            // onKeyDown={(e) => {
+            //   if (e.key === 'Enter' && !e.shiftKey) {
+            //     handleSendMessage();
+            //     e.preventDefault();
+            //   }
+            // }}
           />
           <IconButton component="label">
             📎
