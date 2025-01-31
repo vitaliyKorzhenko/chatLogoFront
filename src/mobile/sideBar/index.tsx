@@ -49,7 +49,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       <List>
         {clients.map((client) => (
           <React.Fragment key={client.id}>
-           <ListItem
+         <ListItem
   onClick={client.chatEnabled ? () => onSelectClient(client.id) : undefined}
   sx={{
     display: 'flex',
@@ -68,7 +68,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     display="flex"
     alignItems="center"
     sx={{
-      flexGrow: 1, // Используем оставшееся пространство для имени и бейджа
+      flexGrow: 1,
       overflow: 'hidden',
     }}
   >
@@ -87,71 +87,62 @@ const Sidebar: React.FC<SidebarProps> = ({
       sx={{
         display: 'flex',
         alignItems: 'center',
-        flexGrow: 1, // Расширяем пространство для имени и бейджа
+        flexGrow: 1,
         marginLeft: '10px',
         overflow: 'hidden',
       }}
     >
-        <ListItem
-                onClick={client.chatEnabled ? () => onSelectClient(client.id) : undefined}
+      <ListItemText
+        primary={
+          <Box component="span" display="flex" alignItems="center">
+            {client.name}
+            {unreadMessages[client.id] > 0 && (
+           <Typography
+           component="span"
+           sx={{
+             color: '#fff', // Белый текст
+             backgroundColor: 'red', // Красный фон
+             fontWeight: 'bold',
+             fontSize: '0.9rem',
+             marginLeft: '8px',
+             padding: '2px 6px', // Добавляем внутренние отступы
+             borderRadius: '12px', // Делаем скругление для круга
+             display: 'inline-flex',
+             minWidth: '20px', // Минимальная ширина для ровного круга
+             justifyContent: 'center',
+             alignItems: 'center',
+           }}
+         >
+           {"+" + unreadMessages[client.id]}
+         </Typography>
+         
+            )}
+            {!client.chatEnabled && (
+              <Typography
+                component="span"
                 sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: isMobile ? '8px' : '12px',
-                    borderRadius: '8px',
-                    '&:hover': client.chatEnabled
-                    ? { backgroundColor: '#e3f2fd', cursor: 'pointer' }
-                    : undefined,
-                    opacity: client.chatEnabled ? 1 : 0.5, // Полупрозрачный для неактивных
-                  }}
-                >
-                  <Box display="flex" alignItems="center">
-                    
-                    <ListItemText
-  primary={
-    <Box component="span">
-      {client.name}{' '}
-      {!client.chatEnabled ? (
-        <Typography
-          component="span"
-          sx={{ color: 'red', fontWeight: 'bold', fontSize: '0.85rem' }}
-        >
-          Not Active
-        </Typography>
-      ) : null}
-    </Box>
-  }
-  sx={{
-    color: '#333',
-    fontWeight: 500,
-    fontSize: '0.9rem',
-    marginLeft: '10px',
-  }}
-/>
-
-                  
-                  </Box>
-                  {unreadMessages[client.id] > 0 && (
-                    <Badge badgeContent={unreadMessages[client.id]} color="error" />
-                  )}
-                </ListItem>
-      {unreadMessages[client.id] > 0 && (
-        <Badge
-          badgeContent={unreadMessages[client.id]}
-          color="error"
-          sx={{
-            '& .MuiBadge-badge': {
-              fontSize: '0.8rem',
-              minWidth: '20px',
-              height: '20px',
-            },
-          }}
-        />
-      )}
+                  color: 'red',
+                  fontWeight: 'bold',
+                  fontSize: '0.85rem',
+                  marginLeft: '6px',
+                }}
+              >
+                Not Active
+              </Typography>
+            )}
+          </Box>
+        }
+        sx={{
+          color: '#333',
+          fontWeight: 500,
+          fontSize: '0.9rem',
+          marginLeft: '10px',
+        }}
+      />
     </Box>
   </Box>
 </ListItem>
+
 
             <Divider />
           </React.Fragment>
