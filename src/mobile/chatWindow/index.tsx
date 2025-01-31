@@ -79,21 +79,23 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
     <Box display="flex" flexDirection="column" height="100vh" width="100%" bgcolor="#f9f9f9">
       {/* Header */}
       <Box
-        display="flex"
-        alignItems="center"
-        px={2}
-        py={1.5}
-        bgcolor="#ffffff"
-        boxShadow="0px 1px 3px rgba(0,0,0,0.1)"
-        sx={{ position: 'sticky', top: 0, zIndex: 10 }}
-      >
-        <IconButton onClick={backToSidebar} sx={{ marginRight: 1, color: '#007bff', fontSize: '1.75rem', padding: 0.5 }}>
-          ←
-        </IconButton>
-        <Typography variant="h6" fontWeight="bold" sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {selectedClientName}
-        </Typography>
-      </Box>
+  display="flex"
+  alignItems="center"
+  px={2}
+  py={0.75} // Уменьшили вертикальный отступ
+  height="40px" // Задали фиксированную высоту
+  bgcolor="#ffffff"
+  boxShadow="0px 1px 3px rgba(0,0,0,0.1)"
+  sx={{ position: 'sticky', top: 0, zIndex: 10 }}
+>
+  <IconButton onClick={backToSidebar} sx={{ marginRight: 0.5, color: '#007bff', fontSize: '1rem', padding: 0.25 }}>
+    ←
+  </IconButton>
+  <Typography variant="body1" fontWeight="bold" sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+    {selectedClientName}
+  </Typography>
+</Box>
+
 
       {/* Messages */}
       <Box ref={chatContainerRef} flexGrow={1} px={2} py={1} overflow="auto" display="flex" flexDirection="column" bgcolor="#ffffff">
