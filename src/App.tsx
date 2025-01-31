@@ -248,9 +248,7 @@ useEffect(() => {
   
   useEffect(() => {
     const handleVisibilityChange = () => {
-      console.log('Visibility change triggered. document.hidden:', document.hidden);
       const newTabState = !document.hidden;
-      console.log('Updating isTabActive to:', newTabState);
       setIsTabActive(newTabState);
     };
   
@@ -278,7 +276,6 @@ useEffect(() => {
                 unread: customer.unreadMessages,
                 chatEnabled: customer.chatEnabled
               }));
-              console.log('======= FETCHED CLIENTS =======', clients);
               setChatClients(clients);
             
               setClientsMessages(clients.reduce((acc, client) => {

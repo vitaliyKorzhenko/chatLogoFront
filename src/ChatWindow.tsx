@@ -1,5 +1,5 @@
 // ChatWindow.tsx
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import {
   Box,
   Typography,
@@ -11,6 +11,7 @@ import {
 
 import { IChatMessage } from './ClientData';
 import DigitalOceanHelper from './digitalOceans';
+import { renderMessageContent } from './helpers';
 
 interface ChatWindowProps {
   source: string;
@@ -48,13 +49,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
   
     if (selectedFile) {
       try {
-        console.log('Uploading file:', selectedFile);
         const uploadedUrl = await DigitalOceanHelper.uploadFileElementToSpaces(
           selectedFile,
           'govorikavideo',
           'chatLogo'
         );
-        console.log('Uploaded URL:', uploadedUrl);
         
         onSendMessage(uploadedUrl, duplicateToEmail, true);
       } catch (error) {
@@ -73,24 +72,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
   
   
 
-  useEffect(() => {
-    if (!messagesEndRef.current) return;
-  
-    const chatContainer = messagesEndRef.current.parentElement;
-    if (!chatContainer) return;
-  
-    // Проверяем, находится ли пользователь внизу перед обновлением
-    const isAtBottom =
-      chatContainer.scrollHeight - chatContainer.scrollTop <= chatContainer.clientHeight + 50;
-  
-    if (isAtBottom) {
-      // Прокручиваем вниз, если пользователь был внизу
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 0);
+  useLayoutEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView();
     }
   }, [messages]);
-  
 
 
   const stickers = ['😊', '👍', '🎉', '❤️', '😂', '😢', '🙌', '🔥', '🎁', '🤔'];
@@ -113,65 +99,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
   //chat enabled
   const chatEnabled = clients.find((client) => client.id === selectedClient)?.chatEnabled || false;
 
-  const renderMessageContent = (message: IChatMessage) => {
-    switch (message.format) {
-      case 'voice':
-      case 'audio':
-        return (
-          <audio controls>
-            <source src={message.text} type="audio/mpeg" />
-            Браузер не поддерживает воспроизведение аудио.
-          </audio>
-        );
-  
-      case 'photo':
-        return <img src={message.text} alt="Photo" style={{ maxWidth: '100%', borderRadius: '8px' }} />;
-      
-      case 'image':
-        return <img src={message.text} alt="Photo" style={{ maxWidth: '100%', borderRadius: '8px' }} />;
-  
-      case 'document':
-        return (
-          <a href={message.text} target="_blank" rel="noopener noreferrer" style={{ color: '#007bff' }}>
-            📄 Завантажити файл 
-          </a>
-        );
-      case 'file':
-       return (
-          <a href={message.text} target="_blank" rel="noopener noreferrer" style={{ color: '#007bff' }}>
-            📄 Завантажити файл 
-          </a>
-        );
-  
-      case 'video':
-        return (
-          <video controls style={{ maxWidth: '100%', borderRadius: '8px' }}>
-            <source src={message.text} type="video/mp4" />
-            Ваш браузер не підтримує відтворення відео.
-          </video>
-        );
-  
-      case 'video_note':
-      case 'vide_note': // Вариант кружка, как в Telegram
-        return (
-          <video
-            controls
-            style={{
-              width: '200px',
-              height: '200px',
-              borderRadius: '50%',
-              objectFit: 'cover',
-            }}
-          >
-            <source src={message.text} type="video/mp4" />
-            Ваш браузер не підтримує відтворення відео.
-          </video>
-        );
-  
-      default:
-        return <>{message.text}</>;
-    }
-  };
+
   
 
   return (
