@@ -16,6 +16,7 @@ import {
 import { FiLogOut } from 'react-icons/fi';
 import { useTheme } from '@mui/material/styles';
 import { auth } from './firebaseConfig';
+import { getNewMessageText, newMessageNotification, notActive } from './helpers/languageHelper';
 
 interface SidebarProps {
   clients: { id: number; name: string, chatEnabled: boolean }[];
@@ -26,9 +27,10 @@ interface SidebarProps {
   selectedClient: number | null; // Новый пропс
   sx?: object;
   totalUnreadMessages: number;
+  source: string;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title, unreadMessages, selectedClient, totalUnreadMessages }) => {
+const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title, unreadMessages, selectedClient, totalUnreadMessages, source }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -72,7 +74,7 @@ const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title
           >
             {email}
           </Typography>
-          <Typography
+          {/* <Typography
             variant="body2"
             sx={{
               color: '#777',
@@ -81,7 +83,7 @@ const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title
             }}
           >
             {title}
-          </Typography>
+          </Typography> */}
           <Typography
             variant="body2"
             sx={{
@@ -91,7 +93,7 @@ const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title
 
             }}
           >
-            {`New Messages: ${totalUnreadMessages}`}
+            {getNewMessageText(source) + ': ' + totalUnreadMessages}
           </Typography>
           <IconButton color="primary" size="small" onClick={async() => {
             //firebae logout
@@ -137,7 +139,7 @@ const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title
           component="span"
           sx={{ color: 'red', fontWeight: 'bold', fontSize: '0.85rem' }}
         >
-          Not Active
+          {notActive(source)}
         </Typography>
       ) : null}
     </Box>

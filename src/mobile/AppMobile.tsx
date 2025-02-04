@@ -11,6 +11,7 @@ import socketService from '../socketService';
 import { ChatClient } from '../typeClient';
 import { FiLogOut } from 'react-icons/fi';
 import { createTitle } from '../helpers';
+import { chatText, messageFromClient, newMessageNotification, studentsText } from '../helpers/languageHelper';
 
 function MobileApp() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -149,8 +150,8 @@ function MobileApp() {
       
         try {
           console.error('START SHOWING NOTIFICATION');
-          showBrowserNotification('Новое Повідомлення!', {
-            body: `Повідомлення від кліента: ${newMessage.text}`,
+          showBrowserNotification(newMessageNotification(source), {
+            body: messageFromClient(source) + newMessage.text,
           });
           
         } catch (error) {
@@ -349,9 +350,9 @@ function MobileApp() {
           >
             {email}
           </Typography>
-          <Typography variant="body2" sx={{ color: '#777', fontSize: '0.85rem' }}>
+          {/* <Typography variant="body2" sx={{ color: '#777', fontSize: '0.85rem' }}>
           {createTitle(source)}
-          </Typography>
+          </Typography> */}
         </Box>
         <IconButton
           color="primary"
@@ -374,12 +375,12 @@ function MobileApp() {
         <Tab
           label={
             <Badge color="error" badgeContent={totalUnreadMessages}>
-              Clients
+              {studentsText(source)}
             </Badge>
           }
         />
         <Tab
-          label="Chat"
+          label={chatText(source)}
           disabled={selectedClient === null}
         />
       </Tabs>
@@ -391,6 +392,7 @@ function MobileApp() {
             onSelectClient={onSelectClient}
             unreadMessages={unreadMessages}
             selectedClient={selectedClient}
+            source={source}
           />
         )}
 
@@ -401,6 +403,7 @@ function MobileApp() {
             clients={chatClients}
             messages={clientsMessages[selectedClient] || []}
             onSendMessage={handleSendMessage}
+            source={source}
           />
         )}
       </Box>

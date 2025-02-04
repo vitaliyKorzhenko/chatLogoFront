@@ -90,6 +90,56 @@ const Login: React.FC<LoginProps> = ({updateSource}) => {
       <div className="login-content">
         <img src={speechLogo} alt="Logo" className="login-logo" />
         <h2 className="login-header">Chat for Speech Teacher</h2>
+        <div className="project-selection-row">
+          <label className="project-option ua">
+            <input
+              type="radio"
+              value="ua"
+              checked={source === 'ua'}
+              onChange={() => {
+                setSource('ua')
+                updateSource('ua')
+              }}
+            />
+            Мова-Промова
+          </label>
+          <label className="project-option main">
+            <input
+              type="radio"
+              value="ru"
+              checked={source === 'ru'}
+              onChange={() =>{
+                setSource('ru')
+                updateSource('ru')
+              }}
+            />
+            Говорика
+          </label>
+          <label className="project-option pl">
+            <input
+              type="radio"
+              value="pl"
+              checked={source === 'pl'}
+              onChange={() => {
+                setSource('pl')
+                updateSource('pl')
+              }}
+            />
+            Poland
+          </label>
+        </div>
+        <div className="email-login">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email"
+            className="email-input"
+          />
+          <button onClick={handleEmailSubmit} className="login-button email-login-button">
+            Sign in
+          </button>
+        </div>
         <button onClick={handleGoogleLogin} className="login-button google-login-button">
           <FcGoogle className="google-icon" /> Sign in with Google
         </button>

@@ -11,12 +11,14 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { notActive } from '../../helpers/languageHelper';
 
 interface SidebarProps {
   clients: { id: number; name: string; chatEnabled: boolean }[];
   onSelectClient: (clientId: number) => void;
   unreadMessages: Record<number, number>;
   selectedClient: number | null;
+  source: string;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -24,6 +26,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onSelectClient,
   unreadMessages,
   selectedClient,
+  source,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -127,7 +130,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   marginLeft: '6px',
                 }}
               >
-                Not Active
+                {notActive(source)}
               </Typography>
             )}
           </Box>

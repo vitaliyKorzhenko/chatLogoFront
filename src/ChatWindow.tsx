@@ -12,6 +12,7 @@ import {
 import { IChatMessage } from './ClientData';
 import DigitalOceanHelper from './digitalOceans';
 import { renderMessageContent } from './helpers';
+import { viaEmailMessage } from './helpers/languageHelper';
 
 interface ChatWindowProps {
   source: string;
@@ -302,7 +303,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
   </Typography>
   <Box display="flex" alignItems="center" gap={1}>
     <Typography variant="caption" color="textSecondary">
-     {"Send via email"}
+     {viaEmailMessage(source)}
     </Typography>
     <Checkbox
       checked={duplicateToEmail}

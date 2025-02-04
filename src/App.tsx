@@ -12,6 +12,7 @@ import { ChatClient } from './typeClient';
 import { IChatMessage, IServerMessage } from './ClientData';
 import socketService from './socketService';
 import { createTitle } from './helpers';
+import { messageFromClient, newMessageNotification } from './helpers/languageHelper';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -203,8 +204,8 @@ useEffect(() => {
       
         try {
           console.error('START SHOWING NOTIFICATION');
-          showBrowserNotification('Новое Повідомлення!', {
-            body: `Повідомлення від кліента: ${newMessage.text}`,
+          showBrowserNotification(newMessageNotification(source), {
+            body: messageFromClient(source) + newMessage.text,
           });
           
         } catch (error) {
@@ -299,7 +300,7 @@ useEffect(() => {
             setEmail(user.email);
             setTeacherId(data.teacherId);
             setSource(data.source);
-            setIsLoggedIn(true);
+            setIsLoggedIn(true); 
           })
           .catch((err) => {
             console.error('Error fetching teacher info:', err);
@@ -434,6 +435,7 @@ useEffect(() => {
         unreadMessages={unreadMessages}
         title={createTitle(source)}
         selectedClient={selectedClient} // Передаём выбранного клиента
+        source={source}
 
       />
       </Box>

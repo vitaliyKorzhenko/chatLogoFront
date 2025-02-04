@@ -10,6 +10,7 @@ import {
 import { IChatMessage } from '../../ClientData';
 import DigitalOceanHelper from '../../digitalOceans';
 import { renderMessageContent } from '../../helpers';
+import { viaEmailMessage } from '../../helpers/languageHelper';
 
 interface ChatWindowProps {
   selectedClient: number | null;
@@ -17,6 +18,7 @@ interface ChatWindowProps {
   messages: IChatMessage[];
   onSendMessage: (message: string, isEmail: boolean, isFile: boolean) => void;
   backToSidebar: () => void;
+  source: string;
 }
 
 const MobileChatWindow: React.FC<ChatWindowProps> = ({
@@ -25,6 +27,7 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
   messages,
   onSendMessage,
   backToSidebar,
+  source,
 }) => {
   const [newMessage, setNewMessage] = useState('');
   const [showStickers, setShowStickers] = useState(false);
@@ -190,7 +193,7 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
 
     {/* Send via Email */}
     <Box display="flex" alignItems="center">
-      <Typography variant="caption">Send via Email</Typography>
+      <Typography variant="caption">{viaEmailMessage(source)}</Typography>
       <Checkbox size="small" checked={duplicateToEmail} onChange={(e) => setDuplicateToEmail(e.target.checked)} />
     </Box>
   </Box>
