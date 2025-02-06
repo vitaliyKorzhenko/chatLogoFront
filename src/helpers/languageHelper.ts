@@ -128,3 +128,70 @@ export function chatText (source: string): string {
     }
     return text;
 }
+
+
+export interface IDialogText {
+    title: string;
+    message: string;
+    allow: string;
+    howToEnable: string;
+    later: string;
+
+}
+export const getDialogText = (lang: string): IDialogText => {
+    
+    switch (lang) {
+      case "ua":
+        return {
+          title: "📢 Дозвольте сповіщення!",
+          message: "Щоб чат працював коректно і ви отримували нові повідомлення, потрібно увімкнути сповіщення.",
+          allow: "Дозволити сповіщення",
+          howToEnable: "Як увімкнути сповіщення?",
+          later: "Пізніше",
+        };
+      case "pl":
+        return {
+          title: "📢 Zezwól na powiadomienia!",
+          message: "Aby czat działał poprawnie i abyś otrzymywał nowe wiadomości, musisz włączyć powiadomienia.",
+          allow: "Zezwól na powiadomienia",
+          howToEnable: "Jak włączyć powiadomienia?",
+          later: "Później",
+        };
+      case "ru":
+        return {
+            title: "📢 Разрешите уведомления!",
+            message: "Чтобы чат работал корректно и вы получали новые сообщения, необходимо включить уведомления.",
+            allow: "Разрешить уведомления",
+            howToEnable: "Как включить уведомления?",
+            later: "Позже",
+          };
+      default:
+        return {
+            title: "📢 Дозвольте сповіщення!",
+            message: "Щоб чат працював коректно і ви отримували нові повідомлення, потрібно увімкнути сповіщення.",
+            allow: "Дозволити сповіщення",
+            howToEnable: "Як увімкнути сповіщення?",
+            later: "Пізніше",
+        };
+    }
+  };
+
+ export const notifSettings = (lang: string) => {
+    switch (lang) {
+      case "ru":
+        return "⚠️ Ваш браузер не позволяет автоматически открыть настройки.\n\n🚀 Включите уведомления вручную:\n1️⃣ Перейдите в настройки браузера.\n2️⃣ Найдите раздел 'Уведомления'.\n3️⃣ Разрешите уведомления для этого сайта.";
+  
+      case "ua":
+        return "⚠️ Ваш браузер не дозволяє автоматично відкрити налаштування.\n\n🚀 Увімкніть сповіщення вручну:\n1️⃣ Перейдіть у налаштування браузера.\n2️⃣ Знайдіть розділ 'Сповіщення'.\n3️⃣ Дозвольте сповіщення для цього сайту.";
+  
+      case "pl":
+        return "⚠️ Twoja przeglądarka nie pozwala na automatyczne otwarcie ustawień.\n\n🚀 Włącz powiadomienia ręcznie:\n1️⃣ Przejdź do ustawień przeglądarki.\n2️⃣ Znajdź sekcję 'Powiadomienia'.\n3️⃣ Zezwól na powiadomienia dla tej strony.";
+  
+      default:
+        return "⚠️ Your browser does not allow automatic opening of settings.\n\n🚀 Enable notifications manually:\n1️⃣ Go to your browser settings.\n2️⃣ Find the 'Notifications' section.\n3️⃣ Allow notifications for this site.";
+    }
+  };
+  
+  
+
+  

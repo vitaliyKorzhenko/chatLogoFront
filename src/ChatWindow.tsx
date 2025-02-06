@@ -92,7 +92,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
 
   const getWhatsAppLink = (id: number) => {
     let project = source === 'ua' ? 'promova' : source === 'pl' ? 'poland' : 'main';
-   return `https://wa.me/12295449955?text=wtsp${id}source` + project;
+   return `https://wa.me/18059959955?text=wtsp${id}source` + project;
   }
 
   const selectedClientName = clients.find((client) => client.id === selectedClient)?.name || 'Unknown Client';
@@ -248,6 +248,25 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
               }
             }}
             placeholder="Type your message..."
+               InputProps={{
+                    disableUnderline: true, // Убираем стандартную линию под текстом
+                    endAdornment: (
+                      <IconButton 
+                        onClick={handleSendMessage}
+                        sx={{
+                          bgcolor: '#007bff',
+                          color: '#fff',
+                          borderRadius: '50%',
+                          width: '40px',
+                          height: '40px',
+                          ml: 1, // Отступ слева от текста
+                          '&:hover': { bgcolor: '#0056b3' }
+                        }}
+                      >
+                        ➤
+                      </IconButton>
+                    ),
+                  }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 handleSendMessage(); // Отправляем сообщение
@@ -284,7 +303,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
 
 
           
-          {
+          {/* {
             chatEnabled ?
             <Button onClick={handleSendMessage} variant="contained" sx={{ marginLeft: 1 }}>
             Send
@@ -294,7 +313,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
           <Button disabled variant="contained" sx={{ marginLeft: 1 }}>
             Send-(disabled)
           </Button>
-          }
+          } */}
          
         </Box>
         <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mt: 1 }}>

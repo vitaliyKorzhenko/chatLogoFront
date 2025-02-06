@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box
 } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from "@mui/material";
+
 import './App.css';
 import Login from './Login';
 import Sidebar from './SideBar';
@@ -11,8 +13,8 @@ import { teacherInfo } from './axios/api';
 import { ChatClient } from './typeClient';
 import { IChatMessage, IServerMessage } from './ClientData';
 import socketService from './socketService';
-import { createTitle } from './helpers';
-import { messageFromClient, newMessageNotification } from './helpers/languageHelper';
+import { createTitle} from './helpers';
+import { IDialogText, messageFromClient, newMessageNotification, notifSettings, getDialogText } from './helpers/languageHelper';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -103,33 +105,83 @@ function App() {
   //   document.title = hasNewMessages ? '🔔 Новое сообщение!' : defaultTitle;
   // };
 
+  const [open, setOpen] = useState(false);
+
+
   useEffect(() => {
     const checkNotificationPermission = async () => {
       try {
-        // Проверяем текущий статус разрешения
-        console.log('Current Notification.permission:', Notification.permission);
-  
-        if (Notification.permission === 'default') {
+        console.log("Current Notification.permission:", Notification.permission);
+
+        if (Notification.permission === "default") {
           const permission = await Notification.requestPermission();
-          console.log('User response to notification permission:', permission);
-  
-          if (permission === 'granted') {
-            console.log('Notifications are allowed by the user.');
-          } else if (permission === 'denied') {
-            console.warn('Notifications are denied by the user.');
+          console.log("User response to notification permission:", permission);
+
+          if (permission === "denied") {
+            setOpen(true); // Показываем алерт если отказано
           }
-        } else if (Notification.permission === 'granted') {
-          console.log('Notifications are already allowed.');
-        } else if (Notification.permission === 'denied') {
-          console.warn('Notifications are already denied.');
+        } else if (Notification.permission === "denied") {
+          setOpen(true); // Если уже отклонено, тоже показываем алерт
         }
       } catch (err) {
-        console.error('Error requesting notification permission:', err);
+        console.error("Error requesting notification permission:", err);
       }
     };
-  
+
     checkNotificationPermission();
   }, []);
+
+  const handleClose = () => setOpen(false);
+
+
+  const handleRequestPermission = async () => {
+    try {
+      const permission = await Notification.requestPermission();
+      console.log("User manually requested notification permission:", permission);
+
+      if (permission === "granted") {
+        setOpen(false);
+        new Notification("✅ Уведомления включены!");
+      } else if (permission === "denied") {
+        console.warn("Notifications are denied by the user.");
+        setOpen(true);
+      }
+    } catch (err) {
+      console.error("Error requesting notification permission:", err);
+    }
+  };
+
+
+
+
+
+  // useEffect(() => {
+  //   const checkNotificationPermission = async () => {
+  //     try {
+  //       // Проверяем текущий статус разрешения
+  //       console.log('Current Notification.permission:', Notification.permission);
+  
+  //       if (Notification.permission === 'default') {
+  //         const permission = await Notification.requestPermission();
+  //         console.log('User response to notification permission:', permission);
+  
+  //         if (permission === 'granted') {
+  //           console.log('Notifications are allowed by the user.');
+  //         } else if (permission === 'denied') {
+  //           console.warn('Notifications are denied by the user.');
+  //         }
+  //       } else if (Notification.permission === 'granted') {
+  //         console.log('Notifications are already allowed.');
+  //       } else if (Notification.permission === 'denied') {
+  //         console.warn('Notifications are already denied.');
+  //       }
+  //     } catch (err) {
+  //       console.error('Error requesting notification permission:', err);
+  //     }
+  //   };
+  
+  //   checkNotificationPermission();
+  // }, []);
   
 
 
@@ -405,6 +457,13 @@ useEffect(() => {
 
   //console.error("========= SORUCE BEFORE RENDER", source);
 
+  const handleOpenSettings = () => {
+    alert(
+      notifSettings(source)
+    );
+  };
+
+  let textDialog: IDialogText = getDialogText(source);
 
   return (
     <Box
@@ -461,6 +520,31 @@ useEffect(() => {
         }}
       />
       </Box>
+     
+      {/* Тут может быть остальная логика твоего компонента */}
+      
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>{textDialog.title}</DialogTitle>
+        <DialogContent>
+          <Typography variant="body1">
+           {textDialog.message}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          {Notification.permission === "default" ? (
+            <Button onClick={handleRequestPermission} color="primary">
+              {textDialog.allow}
+            </Button>
+          ) : (
+            <Button onClick={handleOpenSettings} color="primary">
+             {textDialog.howToEnable}
+            </Button>
+          )}
+          <Button onClick={handleClose} color="secondary">
+            {textDialog.later}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
