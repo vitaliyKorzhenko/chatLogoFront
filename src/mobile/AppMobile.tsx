@@ -4,6 +4,8 @@ import './AppMobile.css';
 import { auth } from '../firebaseConfig';
 import { teacherInfo } from '../axios/api';
 import { IChatMessage, IServerMessage } from '../ClientData';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
+
 import Login from '../Login';
 import MobileSidebar from './sideBar';
 import MobileChatWindow from './chatWindow';
@@ -11,7 +13,8 @@ import socketService from '../socketService';
 import { ChatClient } from '../typeClient';
 import { FiLogOut } from 'react-icons/fi';
 import { createTitle } from '../helpers';
-import { chatText, messageFromClient, newMessageNotification, studentsText } from '../helpers/languageHelper';
+import { IDialogText, messageFromClient, newMessageNotification, notifSettings, getDialogText, chatText, studentsText } from '../helpers/languageHelper';
+
 
 function MobileApp() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -54,33 +57,51 @@ function MobileApp() {
   };
 
 
+  const [open, setOpen] = useState(false);
+
+
   useEffect(() => {
     const checkNotificationPermission = async () => {
       try {
-        // Проверяем текущий статус разрешения
-        console.log('Current Notification.permission:', Notification.permission);
-  
-        if (Notification.permission === 'default') {
+        console.log("Current Notification.permission:", Notification.permission);
+
+        if (Notification.permission === "default") {
           const permission = await Notification.requestPermission();
-          console.log('User response to notification permission:', permission);
-  
-          if (permission === 'granted') {
-            console.log('Notifications are allowed by the user.');
-          } else if (permission === 'denied') {
-            console.warn('Notifications are denied by the user.');
+          console.log("User response to notification permission:", permission);
+
+          if (permission === "denied") {
+            setOpen(true); // Показываем алерт если отказано
           }
-        } else if (Notification.permission === 'granted') {
-          console.log('Notifications are already allowed.');
-        } else if (Notification.permission === 'denied') {
-          console.warn('Notifications are already denied.');
+        } else if (Notification.permission === "denied") {
+          setOpen(true); // Если уже отклонено, тоже показываем алерт
         }
       } catch (err) {
-        console.error('Error requesting notification permission:', err);
+        console.error("Error requesting notification permission:", err);
       }
     };
-  
+
     checkNotificationPermission();
   }, []);
+
+  const handleClose = () => setOpen(false);
+
+
+  const handleRequestPermission = async () => {
+    try {
+      const permission = await Notification.requestPermission();
+      console.log("User manually requested notification permission:", permission);
+
+      if (permission === "granted") {
+        setOpen(false);
+        new Notification("✅ Уведомления включены!");
+      } else if (permission === "denied") {
+        console.warn("Notifications are denied by the user.");
+        setOpen(true);
+      }
+    } catch (err) {
+      console.error("Error requesting notification permission:", err);
+    }
+  };
   
 
 
@@ -332,6 +353,15 @@ function MobileApp() {
     return <Login updateSource={updateSource} />;
   }
 
+   const handleOpenSettings = () => {
+      alert(
+        notifSettings(source)
+      );
+    };
+  
+    let textDialog: IDialogText = getDialogText(source);
+  
+
   return (
     <Box display="flex" flexDirection="column" height="100vh">
       <Box
@@ -407,6 +437,38 @@ function MobileApp() {
           />
         )}
       </Box>
+       <Dialog open={open} onClose={handleClose}>
+             <DialogTitle>{textDialog.title}</DialogTitle>
+             <DialogContent>
+               <Typography variant="body1">
+                {textDialog.message}
+               </Typography>
+               <img
+           src="/notif.png"
+           alt="Instruction to Allow Notifications"
+           style={{
+             width: '100%',
+             maxWidth: '400px',
+             borderRadius: '8px',
+             marginTop: '16px',
+           }}
+         />
+             </DialogContent>
+             <DialogActions>
+               {Notification.permission === "default" ? (
+                 <Button onClick={handleRequestPermission} color="primary">
+                   {textDialog.allow}
+                 </Button>
+               ) : (
+                 <Button onClick={handleOpenSettings} color="primary">
+                  {textDialog.howToEnable}
+                 </Button>
+               )}
+               <Button onClick={handleClose} color="secondary">
+                 {textDialog.later}
+               </Button>
+             </DialogActions>
+           </Dialog>
     </Box>
   );
 }

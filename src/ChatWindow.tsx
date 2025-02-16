@@ -12,7 +12,7 @@ import {
 import { IChatMessage } from './ClientData';
 import DigitalOceanHelper from './digitalOceans';
 import { renderMessageContent } from './helpers';
-import { viaEmailMessage } from './helpers/languageHelper';
+import { getTgLink, viaEmailMessage } from './helpers/languageHelper';
 
 interface ChatWindowProps {
   source: string;
@@ -90,17 +90,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
     return `https://t.me/ChatLogoGovorikaBot?start=tg${id}source` + project;
   }
 
-  const getWhatsAppLink = (id: number) => {
-    let project = source === 'ua' ? 'promova' : source === 'pl' ? 'poland' : 'main';
-   return `https://wa.me/18059959955?text=wtsp${id}source` + project;
-  }
+  // const getWhatsAppLink = (id: number) => {
+  //   let project = source === 'ua' ? 'promova' : source === 'pl' ? 'poland' : 'main';
+  //  return `https://wa.me/18059959955?text=wtsp${id}source` + project;
+  // }
 
   const selectedClientName = clients.find((client) => client.id === selectedClient)?.name || 'Unknown Client';
-
-  //chat enabled
-  const chatEnabled = clients.find((client) => client.id === selectedClient)?.chatEnabled || false;
-
-
   
 
   return (
@@ -136,7 +131,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
             onClick={() => {
               navigator.clipboard.writeText(getTelegramLink(selectedClient || 0));
               //alert
-              alert('Посилання на чат в Telegram скопійовано в буфер обміну');
+              alert(getTgLink(source));
 
             }}
             sx={{
@@ -150,27 +145,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
             }}
           >
             {' 🔗 Telegram'}
-          </Button>
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => 
-            {
-              navigator.clipboard.writeText(getWhatsAppLink(selectedClient || 0));
-              //alert
-              alert('Посилання на чат в WhatsApp скопійовано в буфер обміну');
-            }}
-            sx={{
-              textTransform: 'none',
-              color: '#28a745',
-              borderColor: '#28a745',
-              '&:hover': {
-                backgroundColor: '#e6ffe6',
-                borderColor: '#1d7a34',
-              },
-            }}
-          >
-            {' 🔗 WhatsApp'}
           </Button>
         </Box>
       </Box>

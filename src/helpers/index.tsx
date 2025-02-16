@@ -10,6 +10,13 @@ export function createTitle (source: string): string {
 export const renderMessageContent = (message: IChatMessage) => {
     switch (message.format) {
       case 'voice':
+  return (
+    <audio controls>
+      <source src={message.text} type="audio/ogg" />
+      <source src={message.text} type="audio/mpeg" />
+      Браузер не поддерживает воспроизведение аудио.
+    </audio>
+  );
       case 'audio':
         return (
           <audio controls>

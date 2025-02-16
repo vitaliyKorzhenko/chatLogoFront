@@ -153,38 +153,6 @@ function App() {
 
 
 
-
-
-  // useEffect(() => {
-  //   const checkNotificationPermission = async () => {
-  //     try {
-  //       // Проверяем текущий статус разрешения
-  //       console.log('Current Notification.permission:', Notification.permission);
-  
-  //       if (Notification.permission === 'default') {
-  //         const permission = await Notification.requestPermission();
-  //         console.log('User response to notification permission:', permission);
-  
-  //         if (permission === 'granted') {
-  //           console.log('Notifications are allowed by the user.');
-  //         } else if (permission === 'denied') {
-  //           console.warn('Notifications are denied by the user.');
-  //         }
-  //       } else if (Notification.permission === 'granted') {
-  //         console.log('Notifications are already allowed.');
-  //       } else if (Notification.permission === 'denied') {
-  //         console.warn('Notifications are already denied.');
-  //       }
-  //     } catch (err) {
-  //       console.error('Error requesting notification permission:', err);
-  //     }
-  //   };
-  
-  //   checkNotificationPermission();
-  // }, []);
-  
-
-
   // Логирование после обновления
 useEffect(() => {
   console.error('SOURCE UPDATED:', loginSource); // Гарантированно обновлённое значение
@@ -215,10 +183,18 @@ useEffect(() => {
 
 
 
+      // const sortedMessages = serverMessages.sort((a: IServerMessage, b: IServerMessage) =>
+      //   new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      // );
+
+      //filter by id
 
       const sortedMessages = serverMessages.sort((a: IServerMessage, b: IServerMessage) =>
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        a.id - b.id
       );
+
+      console.error('Received client messages:', clientId, '==========COUNT MESSAGE ===========', serverMessages.length,  '===== LAST MESSAGE:', serverMessages[serverMessages.length - 1]);
+
 
       const newMessages = sortedMessages.map((msg: IServerMessage) => ({
         clientId,
@@ -529,6 +505,16 @@ useEffect(() => {
           <Typography variant="body1">
            {textDialog.message}
           </Typography>
+          <img
+      src="/notif.png"
+      alt="Instruction to Allow Notifications"
+      style={{
+        width: '100%',
+        maxWidth: '400px',
+        borderRadius: '8px',
+        marginTop: '16px',
+      }}
+    />
         </DialogContent>
         <DialogActions>
           {Notification.permission === "default" ? (

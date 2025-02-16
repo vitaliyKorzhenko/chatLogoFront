@@ -136,6 +136,7 @@ export interface IDialogText {
     allow: string;
     howToEnable: string;
     later: string;
+    linkTgCopy?: string;
 
 }
 export const getDialogText = (lang: string): IDialogText => {
@@ -148,6 +149,7 @@ export const getDialogText = (lang: string): IDialogText => {
           allow: "Дозволити сповіщення",
           howToEnable: "Як увімкнути сповіщення?",
           later: "Пізніше",
+          linkTgCopy: "Посилання на чат скопійовано",
         };
       case "pl":
         return {
@@ -156,6 +158,7 @@ export const getDialogText = (lang: string): IDialogText => {
           allow: "Zezwól na powiadomienia",
           howToEnable: "Jak włączyć powiadomienia?",
           later: "Później",
+          linkTgCopy: "Link do czatu skopiowany",
         };
       case "ru":
         return {
@@ -164,6 +167,7 @@ export const getDialogText = (lang: string): IDialogText => {
             allow: "Разрешить уведомления",
             howToEnable: "Как включить уведомления?",
             later: "Позже",
+            linkTgCopy: "Ссылка на чат скопирована",
           };
       default:
         return {
@@ -172,6 +176,7 @@ export const getDialogText = (lang: string): IDialogText => {
             allow: "Дозволити сповіщення",
             howToEnable: "Як увімкнути сповіщення?",
             later: "Пізніше",
+            linkTgCopy: "Посилання на чат скопійовано",
         };
     }
   };
@@ -191,6 +196,23 @@ export const getDialogText = (lang: string): IDialogText => {
         return "⚠️ Your browser does not allow automatic opening of settings.\n\n🚀 Enable notifications manually:\n1️⃣ Go to your browser settings.\n2️⃣ Find the 'Notifications' section.\n3️⃣ Allow notifications for this site.";
     }
   };
+
+
+export const getTgLink = (lang: string) => {
+    switch (lang) {
+      case "ru":
+        return "Ссылка на чат скопирована";
+  
+      case "ua":
+        return "Посилання на чат скопійовано";
+  
+      case "pl":
+        return "Link do czatu skopiowany";
+  
+      default:
+        return "Посилання на чат скопійовано";
+    }
+  }
   
   
 
