@@ -53,7 +53,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         {clients.map((client) => (
           <React.Fragment key={client.id}>
          <ListItem
-  onClick={client.chatEnabled ? () => onSelectClient(client.id) : undefined}
+  onClick={() => onSelectClient(client.id)}
   sx={{
     display: 'flex',
     alignItems: 'center',
@@ -64,7 +64,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     '&:hover': client.chatEnabled
       ? { backgroundColor: '#e3f2fd', cursor: 'pointer' }
       : undefined,
-    opacity: client.chatEnabled ? 1 : 0.5,
+    //opacity: client.chatEnabled ? 1 : 0.5,
   }}
 >
   <Box

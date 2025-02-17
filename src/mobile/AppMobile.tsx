@@ -444,7 +444,7 @@ function MobileApp() {
                 {textDialog.message}
                </Typography>
                <img
-           src="/notif.png"
+           src="/notif1.png"
            alt="Instruction to Allow Notifications"
            style={{
              width: '100%',

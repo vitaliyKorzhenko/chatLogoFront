@@ -112,7 +112,7 @@ const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title
             {clients.map((client) => (
               <React.Fragment key={client.id}>
                 <ListItem
-                onClick={client.chatEnabled ? () => onSelectClient(client.id) : undefined}
+                onClick={() => onSelectClient(client.id)}
                 sx={{
                     display: 'flex',
                     alignItems: 'center',
@@ -122,7 +122,7 @@ const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title
                     '&:hover': client.chatEnabled
                     ? { backgroundColor: '#e3f2fd', cursor: 'pointer' }
                     : undefined,
-                    opacity: client.chatEnabled ? 1 : 0.5, // Полупрозрачный для неактивных
+                    // opacity: client.chatEnabled ? 1 : 0.5, // Полупрозрачный для неактивных
                   }}
                 >
                   <Box display="flex" alignItems="center">
