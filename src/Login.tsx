@@ -87,7 +87,7 @@ const Login: React.FC<LoginProps> = ({ updateSource }) => {
         <button onClick={handleGoogleLogin} className="login-button google-login-button">
           <FcGoogle className="google-icon" /> Sign in with Google
         </button>
-        <div className="email-login">
+        {/* <div className="email-login">
           <input
             type="email"
             placeholder="Enter your email"
@@ -98,7 +98,7 @@ const Login: React.FC<LoginProps> = ({ updateSource }) => {
           <button onClick={handleEmailSubmit} className="login-button email-login-button">
             Sign in with Email
           </button>
-        </div>
+        </div> */}
         {error && <div className="error-message">{error}</div>}
       </div>
     </div>
