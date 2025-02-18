@@ -15,7 +15,7 @@ interface LoginProps {
   updateSource: (source: string) => void;
 }
 
-const Login: React.FC<LoginProps> = ({updateSource}) => {
+const Login: React.FC<LoginProps> = ({ updateSource }) => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [source, setSource] = useState<string | null>('ua');
@@ -47,20 +47,15 @@ const Login: React.FC<LoginProps> = ({updateSource}) => {
   };
 
   const handleEmailSubmit = async () => {
-    if (!source) {
-      setError('Please select a project.');
-      return;
+    let currentSource=  source;
+    if (!currentSource) {
+      currentSource = 'ua';
     }
 
     try {
-      const teacher = await checkEmail(email, source);
-      //add source to local storage
+      const teacher = await checkEmail(email, currentSource);
       localStorage.setItem('source', source);
-      if (teacher) {
-        await handleFirebaseEmailLogin();
-      } else {
-        setError('Not Found Teacher with this email.');
-      }
+      await handleFirebaseEmailLogin();
     } catch (error) {
       console.error('Error during email authentication:', error);
       setError('Email authentication failed. Please check your email and try again.');
@@ -71,17 +66,16 @@ const Login: React.FC<LoginProps> = ({updateSource}) => {
     const auth = getAuth();
     try {
       await signInWithEmailAndPassword(auth, email, '12345678');
-      localStorage.setItem('source', source);
-      console.error('Email sign-in successful');
+      console.log('Email sign-in successful');
     } catch (error: any) {
       console.error('Error during email sign-in:', error);
-        try {
-          await createUserWithEmailAndPassword(auth, email, '12345678');
-          await signInWithEmailAndPassword(auth, email, '12345678');
-          localStorage.setItem('source', source);
-        } catch (registerError) {
-          setError('Failed to register with provided email. Please try again.');
-        }
+      try {
+        await createUserWithEmailAndPassword(auth, email, '12345678');
+        await signInWithEmailAndPassword(auth, email, '12345678');
+        console.log('New account created and signed in');
+      } catch (registerError) {
+        setError('Failed to register with provided email. Please try again.');
+      }
     }
   };
 
@@ -93,6 +87,18 @@ const Login: React.FC<LoginProps> = ({updateSource}) => {
         <button onClick={handleGoogleLogin} className="login-button google-login-button">
           <FcGoogle className="google-icon" /> Sign in with Google
         </button>
+        <div className="email-login">
+          <input
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="email-input"
+          />
+          <button onClick={handleEmailSubmit} className="login-button email-login-button">
+            Sign in with Email
+          </button>
+        </div>
         {error && <div className="error-message">{error}</div>}
       </div>
     </div>
