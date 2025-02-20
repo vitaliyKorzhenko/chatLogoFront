@@ -295,7 +295,9 @@ useEffect(() => {
       console.error('BEFORE TEACHER INFO ======', user.email, loginSource);
       //get source from local storage
       let currentSource = localStorage.getItem('source');
-        teacherInfo(user.email, currentSource)
+      let email = user.email;
+      //email = 'katypit87@gmail.com';
+        teacherInfo(email, currentSource)
           .then((data: any) => {
             let clients: any;
             if (data && data.customers) {
