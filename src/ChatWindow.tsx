@@ -7,6 +7,7 @@ import {
   IconButton,
   Button,
   Checkbox,
+  CircularProgress
 } from '@mui/material';
 
 import { IChatMessage } from './ClientData';
@@ -35,6 +36,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null); // Состояние для выбранного файла
 
+  const [isUploading, setIsUploading] = useState(false); // Состояние для индикатора загрузки
+
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -50,11 +53,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
   
     if (selectedFile) {
       try {
+        setIsUploading(true);
         const uploadedUrl = await DigitalOceanHelper.uploadFileElementToSpaces(
           selectedFile,
           'govorikavideo',
           'chatLogo'
         );
+        setIsUploading(false);
         
         onSendMessage(uploadedUrl, duplicateToEmail, true);
       } catch (error) {
@@ -111,6 +116,18 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
         ...sx, // Пользовательские стили
       }}
     >
+          {isUploading && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+          }}
+        >
+          <CircularProgress />
+        </Box>
+      )}
       {/* Header */}
       <Box
         display="flex"
@@ -226,6 +243,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
                     disableUnderline: true, // Убираем стандартную линию под текстом
                     endAdornment: (
                       <IconButton 
+                        disabled={isUploading} // Кнопка неактивна во время загрузки
                         onClick={handleSendMessage}
                         sx={{
                           bgcolor: '#007bff',

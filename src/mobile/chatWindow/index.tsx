@@ -6,6 +6,7 @@ import {
   IconButton,
   Button,
   Checkbox,
+  CircularProgress
 } from '@mui/material';
 import { IChatMessage } from '../../ClientData';
 import DigitalOceanHelper from '../../digitalOceans';
@@ -37,6 +38,9 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
 
+   const [isUploading, setIsUploading] = useState(false); // Состояние для индикатора загрузки
+  
+
 
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,7 +58,9 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
 
     if (selectedFile) {
       try {
+        setIsUploading(true);
         const uploadedUrl = await DigitalOceanHelper.uploadFileElementToSpaces(selectedFile, 'govorikavideo', 'chatLogo');
+        setIsUploading(false);
         onSendMessage(uploadedUrl, duplicateToEmail, true);
       } catch (error) {
         console.error('Failed to upload file:', error);
@@ -80,6 +86,18 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
 
   return (
     <Box display="flex" flexDirection="column" height="100vh" width="100%" bgcolor="#f9f9f9">
+                {isUploading && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                }}
+              >
+                <CircularProgress />
+              </Box>
+            )}
       {/* Header */}
       <Box
   display="flex"

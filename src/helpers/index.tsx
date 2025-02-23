@@ -13,7 +13,18 @@ const getFileName = (url: string) => {
   return parts[parts.length - 1]; // Берём последний элемент пути (сам файл)
 };
 
+// Функция для проверки, является ли строка URL
+const isValidUrl = (url: string): boolean => {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export const renderMessageContent = (message: IChatMessage) => {
+  console.info('message', message);
   switch (message.format) {
     case "voice":
     case "audio":
@@ -75,12 +86,27 @@ export const renderMessageContent = (message: IChatMessage) => {
     }
 
     default:
+      // Если тип не определён, но текст является валидным URL,
+      // показываем его как ссылку для скачивания файла.
+      if (isValidUrl(message.text)) {
+        const fileName = getFileName(message.text);
+        return (
+          <a
+            href={message.text}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "white", textDecoration: "none" }}
+          >
+            📄 {fileName} (Завантажити)
+          </a>
+        );
+      }
       return (
         <Typography
           sx={{
-            wordBreak: "break-word", // Разбивает длинные слова
-            whiteSpace: "pre-wrap", // Сохраняет переносы строк
-            overflowWrap: "break-word", // Перенос длинного текста
+            wordBreak: "break-word",
+            whiteSpace: "pre-wrap",
+            overflowWrap: "break-word",
           }}
         >
           {message.text}
@@ -88,6 +114,7 @@ export const renderMessageContent = (message: IChatMessage) => {
       );
   }
 };
+
 
 
 // export const renderMessageContent = (message: IChatMessage) => {
