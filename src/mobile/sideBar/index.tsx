@@ -9,9 +9,13 @@ import {
   Badge,
   useMediaQuery,
   Typography,
+  Tooltip,
+  IconButton,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { notActive } from '../../helpers/languageHelper';
+import { FiLogOut , FiRefreshCcw} from 'react-icons/fi';
+
 
 interface SidebarProps {
   clients: { id: number; name: string; chatEnabled: boolean }[];
@@ -19,6 +23,7 @@ interface SidebarProps {
   unreadMessages: Record<number, number>;
   selectedClient: number | null;
   source: string;
+  reloadTeacherInfo: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -27,6 +32,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   unreadMessages,
   selectedClient,
   source,
+  reloadTeacherInfo
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -49,6 +55,20 @@ const Sidebar: React.FC<SidebarProps> = ({
         padding: '8px',
       }}
     >
+         <Tooltip title="Reload clients">
+            <IconButton
+              color="primary"
+              size="small"
+              onClick={ async () => {
+                //reload teacher info
+                await reloadTeacherInfo();
+              }}
+            >
+              <FiRefreshCcw />
+              {"Оновити список "}
+            </IconButton>
+          </Tooltip>
+
       <List>
         {clients.map((client) => (
           <React.Fragment key={client.id}>

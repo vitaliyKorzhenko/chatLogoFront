@@ -14,6 +14,7 @@ import { ChatClient } from '../typeClient';
 import { FiLogOut } from 'react-icons/fi';
 import { createTitle } from '../helpers';
 import { IDialogText, messageFromClient, newMessageNotification, notifSettings, getDialogText, chatText, studentsText } from '../helpers/languageHelper';
+import { syncTeacherWithBumes } from '../helpers/bumesHelper';
 
 
 function MobileApp() {
@@ -55,6 +56,24 @@ function MobileApp() {
       console.warn('Уведомление не отправлено: вкладка активна или уведомления не разрешены.');
     }
   };
+
+
+    //const reloadTeacherInfo 
+    const reloadTeacherInfo = async () => {
+      try {
+        console.log("========= START RELOAD TEACHER INFO =========");
+        //step 1  syncTeacherWithBumes
+        //let currentEmail = 'tamilaryinova@gmail.com';
+        let result = await syncTeacherWithBumes(email);
+        console.info('syncTeacherWithBumes:', result);
+  
+        //reload page
+        window.location.reload();
+      } catch (error) {
+        //error
+        console.error('Error fetching teacher info:', error);
+      }
+    };
 
 
   const [open, setOpen] = useState(false);
@@ -423,6 +442,7 @@ function MobileApp() {
             unreadMessages={unreadMessages}
             selectedClient={selectedClient}
             source={source}
+            reloadTeacherInfo={reloadTeacherInfo}
           />
         )}
 

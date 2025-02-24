@@ -12,8 +12,9 @@ import {
   Drawer,
   Badge,
   useMediaQuery,
+  Tooltip,
 } from '@mui/material';
-import { FiLogOut } from 'react-icons/fi';
+import { FiLogOut , FiRefreshCcw} from 'react-icons/fi';
 import { useTheme } from '@mui/material/styles';
 import { auth } from './firebaseConfig';
 import { getNewMessageText, newMessageNotification, notActive } from './helpers/languageHelper';
@@ -28,9 +29,10 @@ interface SidebarProps {
   sx?: object;
   totalUnreadMessages: number;
   source: string;
+  reloadTeacherInfo: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title, unreadMessages, selectedClient, totalUnreadMessages, source }) => {
+const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title, unreadMessages, selectedClient, totalUnreadMessages, source, reloadTeacherInfo }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -63,6 +65,21 @@ const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title
         overflow="hidden"
       >
         <Box mb={2} display="flex" alignItems="center" flexDirection="column">
+          {/*/ button for reload clients */}
+          <Tooltip title="Reload clients">
+            <IconButton
+              color="primary"
+              size="small"
+              onClick={ async () => {
+                //reload teacher info
+                await reloadTeacherInfo();
+              }}
+            >
+              <FiRefreshCcw />
+              {"Оновити список "}
+            </IconButton>
+          </Tooltip>
+
           <Typography
             variant="body1"
             sx={{
