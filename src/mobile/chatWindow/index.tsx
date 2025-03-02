@@ -6,7 +6,9 @@ import {
   IconButton,
   Button,
   Checkbox,
-  CircularProgress
+  CircularProgress,
+  Menu,
+  MenuItem
 } from '@mui/material';
 import { IChatMessage } from '../../ClientData';
 import DigitalOceanHelper from '../../digitalOceans';
@@ -20,6 +22,7 @@ interface ChatWindowProps {
   onSendMessage: (message: string, isEmail: boolean, isFile: boolean) => void;
   backToSidebar: () => void;
   source: string;
+  deleteMessage?: (message: IChatMessage) => void;
 }
 
 const MobileChatWindow: React.FC<ChatWindowProps> = ({
@@ -29,6 +32,7 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
   onSendMessage,
   backToSidebar,
   source,
+  deleteMessage,
 }) => {
   const [newMessage, setNewMessage] = useState('');
   const [showStickers, setShowStickers] = useState(false);
@@ -40,6 +44,59 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
 
    const [isUploading, setIsUploading] = useState(false); // Состояние для индикатора загрузки
   
+
+
+       // ✨ Добавляем состояние для контекстного меню
+       const [contextMenu, setContextMenu] = useState<{
+         mouseX: number;
+         mouseY: number;
+         message: IChatMessage | null;
+       } | null>(null);
+
+       const handleLongPress = (event: React.TouchEvent<HTMLDivElement>, message: IChatMessage) => {
+        event.preventDefault(); // Блокируем стандартное действие
+      
+        const touch = event.touches[0]; // Получаем координаты первого касания
+      
+        setContextMenu({
+          mouseX: touch.clientX,
+          mouseY: touch.clientY,
+          message,
+        });
+      };
+      
+   
+       const handleContextMenu = (event: MouseEvent, message: IChatMessage) => {
+        console.log('handleContextMenu');
+         event.preventDefault(); // Предотвращаем стандартное меню браузера
+         setContextMenu({
+           mouseX: event.clientX - 2,
+           mouseY: event.clientY - 4,
+           message,
+         });
+       };
+   
+         // ✨ Закрываем меню
+     const handleCloseContextMenu = () => {
+       setContextMenu(null);
+     };
+   
+     // ✨ Копирование текста сообщения
+     const handleCopyMessage = () => {
+       if (contextMenu?.message) {
+         navigator.clipboard.writeText(contextMenu.message.text);
+       }
+       handleCloseContextMenu();
+     };
+   
+     // ✨ Удаление сообщения
+     const handleDeleteMessage = () => {
+       if (contextMenu?.message && deleteMessage) {
+         deleteMessage(contextMenu.message);
+       }
+       handleCloseContextMenu();
+     };
+     
 
 
 
@@ -134,6 +191,12 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
               borderRadius="10px"
               maxWidth="75%"
               sx={{ color: message.sender === 'client' ? '#333' : '#fff' }}
+              onContextMenu={(e) => {
+                if (message.sender !== 'client') {
+                  handleContextMenu(e.nativeEvent, message);
+                } 
+              }}
+              onTouchStart={(e) => handleLongPress(e, message)} // Добавляем обработку долгого нажатия
             >
                 {renderMessageContent(message)}
               <Typography variant="caption" display="block" textAlign="right" mt={0.5}>
@@ -229,6 +292,26 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
           ))}
         </Box>
       )}
+
+            {/* 📌 Контекстное меню (копирование / удаление) */}
+            <Menu
+  open={contextMenu !== null}
+  onClose={handleCloseContextMenu}
+  anchorReference="anchorPosition"
+  anchorPosition={
+    contextMenu !== null
+      ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+      : undefined
+  }
+>
+  <MenuItem onClick={handleCopyMessage}>📎 copy</MenuItem>
+  {deleteMessage && (
+    <MenuItem onClick={handleDeleteMessage} sx={{ color: 'red' }}>
+      🗑️ delete
+    </MenuItem>
+  )}
+</Menu>
+
     </Box>
   );
 };

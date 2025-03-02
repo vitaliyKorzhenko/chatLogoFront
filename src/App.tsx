@@ -36,6 +36,30 @@ function App() {
 
   const [loginSource, setLoginSource] = useState<string | null>('ua');
 
+
+  //delete chatMessages
+  const deleteChatMessage = (message: IChatMessage) => {
+    try {
+      //delete message
+      console.error('Deleting message:', message);
+      //delete message from server
+      message.source = source;
+      socketService.socket.emit('deleteMessage', message );
+
+      //update message
+      setClientsMessages((prev) => {
+        const clientMessages = prev[message.clientId] || [];
+        return {
+          ...prev,
+          [message.clientId]: clientMessages.filter((msg) => msg.id !== message.id),
+        };
+      });
+      
+    } catch (error) {
+      
+    }
+  };
+
   const changeFavicon = (iconUrl: string) => {
     const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement | null;
     if (link) {
@@ -206,11 +230,19 @@ useEffect(() => {
       //   new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
       // );
 
-      //filter by id
+      //filter server messages isActive = true
 
-      const sortedMessages = serverMessages.sort((a: IServerMessage, b: IServerMessage) =>
+
+
+
+      let sortedMessages = serverMessages.sort((a: IServerMessage, b: IServerMessage) =>
         a.id - b.id
       );
+
+      // filter sorted messages by isActive = true
+
+      sortedMessages = sortedMessages.filter((msg: IServerMessage) => msg.isActive == true);
+      
 
       console.error('Received client messages:', clientId, '==========COUNT MESSAGE ===========', serverMessages.length,  '===== LAST MESSAGE:', serverMessages[serverMessages.length - 1]);
 
@@ -315,7 +347,7 @@ useEffect(() => {
       //get source from local storage
       let currentSource = localStorage.getItem('source');
       let email = user.email;
-      //email = 'tamilaryinova@gmail.com';
+      // email = 'tamilaryinova@gmail.com';
         teacherInfo(email, currentSource)
           .then((data: any) => {
             let clients: any;
@@ -516,6 +548,7 @@ useEffect(() => {
           overflow: 'hidden', // Убирает горизонтальный скроллинг
           margin: 0, // Убираем возможные отступы
         }}
+        deleteMessage={deleteChatMessage}
       />
       </Box>
      

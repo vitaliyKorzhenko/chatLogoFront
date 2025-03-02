@@ -36,6 +36,30 @@ function MobileApp() {
   const [loginSource, setLoginSource] = useState<string | null>('ua');
 
 
+      //delete chatMessages
+      const deleteChatMessage = (message: IChatMessage) => {
+        try {
+          //delete message
+          console.error('Deleting message:', message);
+          //delete message from server
+          message.source = source;
+          socketService.socket.emit('deleteMessage', message );
+    
+          //update message
+          setClientsMessages((prev) => {
+            const clientMessages = prev[message.clientId] || [];
+            return {
+              ...prev,
+              [message.clientId]: clientMessages.filter((msg) => msg.id !== message.id),
+            };
+          });
+          
+        } catch (error) {
+          
+        }
+      };
+
+
   const updateSource = (source: string) => {
     console.error('Updating source:', source);
     setLoginSource(source);
@@ -150,9 +174,12 @@ function MobileApp() {
 
 
 
-      const sortedMessages = serverMessages.sort((a: IServerMessage, b: IServerMessage) =>
+      let sortedMessages = serverMessages.sort((a: IServerMessage, b: IServerMessage) =>
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
       );
+
+       // filter sorted messages by isActive = true
+      sortedMessages = sortedMessages.filter((msg: IServerMessage) => msg.isActive == true);
 
       const newMessages = sortedMessages.map((msg: IServerMessage) => ({
         clientId,
@@ -454,6 +481,7 @@ function MobileApp() {
             messages={clientsMessages[selectedClient] || []}
             onSendMessage={handleSendMessage}
             source={source}
+            deleteMessage={deleteChatMessage}
           />
         )}
       </Box>

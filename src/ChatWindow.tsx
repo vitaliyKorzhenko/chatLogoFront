@@ -7,13 +7,16 @@ import {
   IconButton,
   Button,
   Checkbox,
-  CircularProgress
+  CircularProgress,
+  Menu,
+  MenuItem
 } from '@mui/material';
 
 import { IChatMessage } from './ClientData';
 import DigitalOceanHelper from './digitalOceans';
 import { renderMessageContent } from './helpers';
 import { getTgLink, viaEmailMessage } from './helpers/languageHelper';
+
 
 interface ChatWindowProps {
   source: string;
@@ -22,10 +25,11 @@ interface ChatWindowProps {
   messages: IChatMessage[];
   onSendMessage: (message: string, isEmail: boolean, isFile: boolean) => void;
   sx?: object; // Добавляем это свойство
+  deleteMessage?: (message: IChatMessage) => void;
 
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messages, onSendMessage, sx, source}) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messages, onSendMessage, sx, source, deleteMessage}) => {
   const [newMessage, setNewMessage] = useState('');
   const [showStickers, setShowStickers] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -37,6 +41,44 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
   const [selectedFile, setSelectedFile] = useState<File | null>(null); // Состояние для выбранного файла
 
   const [isUploading, setIsUploading] = useState(false); // Состояние для индикатора загрузки
+
+    // ✨ Добавляем состояние для контекстного меню
+    const [contextMenu, setContextMenu] = useState<{
+      mouseX: number;
+      mouseY: number;
+      message: IChatMessage | null;
+    } | null>(null);
+
+    const handleContextMenu = (event: MouseEvent, message: IChatMessage) => {
+      event.preventDefault(); // Предотвращаем стандартное меню браузера
+      setContextMenu({
+        mouseX: event.clientX - 2,
+        mouseY: event.clientY - 4,
+        message,
+      });
+    };
+
+      // ✨ Закрываем меню
+  const handleCloseContextMenu = () => {
+    setContextMenu(null);
+  };
+
+  // ✨ Копирование текста сообщения
+  const handleCopyMessage = () => {
+    if (contextMenu?.message) {
+      navigator.clipboard.writeText(contextMenu.message.text);
+    }
+    handleCloseContextMenu();
+  };
+
+  // ✨ Удаление сообщения
+  const handleDeleteMessage = () => {
+    if (contextMenu?.message && deleteMessage) {
+      deleteMessage(contextMenu.message);
+    }
+    handleCloseContextMenu();
+  };
+  
 
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -197,7 +239,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
               borderRadius="12px"
               maxWidth="70%"
               sx={{ color: message.sender === 'client' ? '#333' : '#fff' }}
-            >
+              onContextMenu={(e) => {
+                if (message.sender !== 'client') {
+                  handleContextMenu(e.nativeEvent, message);
+                } 
+              }}
+              >
               {renderMessageContent(message)}
               {/* {message.text} */}
               <Typography variant="caption" display="block" textAlign="right" mt={0.5}>
@@ -293,19 +340,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
   />
 </IconButton>
 
-
-          
-          {/* {
-            chatEnabled ?
-            <Button onClick={handleSendMessage} variant="contained" sx={{ marginLeft: 1 }}>
-            Send
-          </Button>
-          :
-           // Кнопка неактивна, если чат отключен
-          <Button disabled variant="contained" sx={{ marginLeft: 1 }}>
-            Send-(disabled)
-          </Button>
-          } */}
          
         </Box>
         <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mt: 1 }}>
@@ -362,6 +396,26 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
           ))}
         </Box>
       )}
+
+      {/* 📌 Контекстное меню (копирование / удаление) */}
+      <Menu
+  open={contextMenu !== null}
+  onClose={handleCloseContextMenu}
+  anchorReference="anchorPosition"
+  anchorPosition={
+    contextMenu !== null
+      ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+      : undefined
+  }
+>
+  <MenuItem onClick={handleCopyMessage}>📎 copy</MenuItem>
+  {deleteMessage && (
+    <MenuItem onClick={handleDeleteMessage} sx={{ color: 'red' }}>
+      🗑️ delete
+    </MenuItem>
+  )}
+</Menu>
+
     </Box>
   );
   
