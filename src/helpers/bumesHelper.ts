@@ -1,4 +1,6 @@
-const BUMES_URL = 'http://167.172.179.104:4040';
+//const BUMES_URL = 'http://167.172.179.104:4040';
+
+const BUMES_URL = 'https://msg.slideedu.com/bumes';
 
 export const syncTeacherWithBumes = async (email: string) => {
   try {
