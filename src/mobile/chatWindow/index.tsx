@@ -14,6 +14,7 @@ import { IChatMessage } from '../../ClientData';
 import DigitalOceanHelper from '../../digitalOceans';
 import { renderMessageContent } from '../../helpers';
 import { viaEmailMessage } from '../../helpers/languageHelper';
+import { sendBumesMessage } from '../../helpers/bumesHelper';
 
 interface ChatWindowProps {
   selectedClient: number | null;
@@ -140,6 +141,26 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
   const stickers = ['😊', '👍', '🎉', '❤️', '😂', '😢', '🙌', '🔥', '🎁', '🤔'];
 
   const selectedClientName = clients.find((client) => client.id === selectedClient)?.name || 'Unknown Client';
+
+  const handleForwardToAdmin = async () => {
+    if (contextMenu?.message && selectedClient) {
+      try {
+        await sendBumesMessage(selectedClient, contextMenu.message.text);
+        
+        onSendMessage(
+          "Ваше питання передано адміністратору. Найближчим часом адміністратор зателефонує вами.",
+          false,
+          false
+        );
+
+        alert("Message has been forwarded to admin successfully!");
+      } catch (error) {
+        console.error('Error forwarding message to admin:', error);
+        alert("Failed to forward message to admin. Please try again.");
+      }
+    }
+    handleCloseContextMenu();
+  };
 
   return (
     <Box display="flex" flexDirection="column" height="100vh" width="100%" bgcolor="#f9f9f9">
@@ -305,10 +326,14 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
   }
 >
   <MenuItem onClick={handleCopyMessage}>📎 copy</MenuItem>
-  {deleteMessage && (
-    <MenuItem onClick={handleDeleteMessage} sx={{ color: 'red' }}>
-      🗑️ delete
-    </MenuItem>
+  {contextMenu?.message?.sender === 'client' ? (
+    <MenuItem onClick={handleForwardToAdmin}>📤 Forward to Admin</MenuItem>
+  ) : (
+    deleteMessage && (
+      <MenuItem onClick={handleDeleteMessage} sx={{ color: 'red' }}>
+        🗑️ delete
+      </MenuItem>
+    )
   )}
 </Menu>
 

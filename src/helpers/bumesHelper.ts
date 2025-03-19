@@ -23,3 +23,25 @@ export const syncTeacherWithBumes = async (email: string) => {
     return null;
   }
 };
+
+export const sendBumesMessage = async (customerId: number, message: string) => {
+  try {
+    //!!! TODO: remove this after testing  3 - is test customer id Bogdan 10000 - is test customer id for test and redirct to Bogdan 3
+    //!!! DELETE THIS AFTER TESTING
+    if (customerId == 10000) { 
+      customerId = 3;
+    }
+    const response = await fetch(`http://msg.slideedu.com:4040/customer/${customerId}/message`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ message })
+    });
+    
+    return response.json();
+  } catch (error) {
+    console.error('Error sending bumes message:', error);
+    throw error;
+  }
+};

@@ -16,6 +16,7 @@ import { IChatMessage } from './ClientData';
 import DigitalOceanHelper from './digitalOceans';
 import { renderMessageContent } from './helpers';
 import { getTgLink, viaEmailMessage } from './helpers/languageHelper';
+import { sendBumesMessage } from './helpers/bumesHelper';
 
 
 interface ChatWindowProps {
@@ -50,7 +51,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
     } | null>(null);
 
     const handleContextMenu = (event: MouseEvent, message: IChatMessage) => {
-      event.preventDefault(); // Предотвращаем стандартное меню браузера
+      event.preventDefault();
       setContextMenu({
         mouseX: event.clientX - 2,
         mouseY: event.clientY - 4,
@@ -144,6 +145,33 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
 
   const selectedClientName = clients.find((client) => client.id === selectedClient)?.name || 'Unknown Client';
   
+
+  const handleForwardToAdmin = async () => {
+    if (contextMenu?.message) {
+      try {
+        // Отправляем сообщение админу
+        let currentClient = clients.find((client) => client.id === selectedClient);
+        console.log('currentClient', currentClient);
+        if (currentClient) {
+        await sendBumesMessage(currentClient?.id, contextMenu.message.text);
+        }
+        
+        // Отправляем уведомление клиенту
+        onSendMessage(
+          "Ваше питання передано адміністратору. Найближчим часом адміністратор зателефонує вами.",
+          false,
+          false
+        );
+
+        // Показываем алерт об успешной отправке
+        alert("Message has been forwarded to admin successfully!");
+      } catch (error) {
+        console.error('Error forwarding message to admin:', error);
+        alert("Failed to forward message to admin. Please try again.");
+      }
+    }
+    handleCloseContextMenu();
+  };
 
   return (
     <Box
@@ -240,9 +268,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
               maxWidth="70%"
               sx={{ color: message.sender === 'client' ? '#333' : '#fff' }}
               onContextMenu={(e) => {
-                if (message.sender !== 'client') {
-                  handleContextMenu(e.nativeEvent, message);
-                } 
+                handleContextMenu(e.nativeEvent, message);
               }}
               >
               {renderMessageContent(message)}
@@ -409,10 +435,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
   }
 >
   <MenuItem onClick={handleCopyMessage}>📎 copy</MenuItem>
-  {deleteMessage && (
-    <MenuItem onClick={handleDeleteMessage} sx={{ color: 'red' }}>
-      🗑️ delete
-    </MenuItem>
+  {contextMenu?.message?.sender === 'client' ? (
+    <MenuItem onClick={handleForwardToAdmin}>📤 Forward to Admin</MenuItem>
+  ) : (
+    deleteMessage && (
+      <MenuItem onClick={handleDeleteMessage} sx={{ color: 'red' }}>
+        🗑️ delete
+      </MenuItem>
+    )
   )}
 </Menu>
 
