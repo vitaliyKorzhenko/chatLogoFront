@@ -31,7 +31,7 @@ export const sendBumesMessage = async (customerId: number, message: string) => {
     if (customerId == 10000) { 
       customerId = 3;
     }
-    const response = await fetch(`http://msg.slideedu.com:4040/customer/${customerId}/message`, {
+    const response = await fetch(`${BUMES_URL}/customer/${customerId}/message`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
