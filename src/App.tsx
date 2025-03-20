@@ -108,6 +108,8 @@ function App() {
   const socket = socketService.socket;
 
   const defaultTitle = 'LogoChat';
+  // Добавляем звук уведомления
+  const notificationSound = new Audio('/notification.mp3');
 
 
   const showBrowserNotification = (title, options) => {
@@ -280,16 +282,17 @@ useEffect(() => {
         format: data.message.format || 'text',
       };
 
-      
-        try {
-          console.error('START SHOWING NOTIFICATION');
-          showBrowserNotification(newMessageNotification(source), {
-            body: messageFromClient(source) + newMessage.text,
-          });
-          
-        } catch (error) {
-          console.error('Error showing notification:', error);     
-        }
+      try {
+        // Добавляем воспроизведение звука
+        notificationSound.play().catch(err => console.error('Error playing sound:', err));
+
+        console.error('START SHOWING NOTIFICATION');
+        showBrowserNotification(newMessageNotification(source), {
+          body: messageFromClient(source) + newMessage.text,
+        });
+      } catch (error) {
+        console.error('Error showing notification:', error);     
+      }
       
 
       setClientsMessages((prev) => {
@@ -347,7 +350,7 @@ useEffect(() => {
       //get source from local storage
       let currentSource = localStorage.getItem('source');
       let email = user.email;
-      //email = 'alinakorzenko6@gmail.com';
+      //email = 'oksana.baleva27@gmail.com';
         teacherInfo(email, currentSource)
           .then((data: any) => {
             let clients: any;

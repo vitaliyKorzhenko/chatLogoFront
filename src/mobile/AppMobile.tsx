@@ -16,6 +16,7 @@ import { createTitle } from '../helpers';
 import { IDialogText, messageFromClient, newMessageNotification, notifSettings, getDialogText, chatText, studentsText } from '../helpers/languageHelper';
 import { syncTeacherWithBumes } from '../helpers/bumesHelper';
 
+const notificationSound = new Audio('/notification.mp3');
 
 function MobileApp() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -218,16 +219,17 @@ function MobileApp() {
         format: data.message.format || 'text',
       };
 
-      
-        try {
-          console.error('START SHOWING NOTIFICATION');
-          showBrowserNotification(newMessageNotification(source), {
-            body: messageFromClient(source) + newMessage.text,
-          });
-          
-        } catch (error) {
-          console.error('Error showing notification:', error);     
-        }
+      try {
+        // Добавляем воспроизведение звука
+        notificationSound.play().catch(err => console.error('Error playing sound:', err));
+
+        console.error('START SHOWING NOTIFICATION');
+        showBrowserNotification(newMessageNotification(source), {
+          body: messageFromClient(source) + newMessage.text,
+        });
+      } catch (error) {
+        console.error('Error showing notification:', error);     
+      }
       
 
       setClientsMessages((prev) => {
