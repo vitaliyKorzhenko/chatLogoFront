@@ -68,15 +68,29 @@ const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title
           {/*/ button for reload clients */}
           <Tooltip title="Reload clients">
             <IconButton
-              color="primary"
-              size="small"
-              onClick={ async () => {
-                //reload teacher info
-                await reloadTeacherInfo();
+              onClick={reloadTeacherInfo}
+              sx={{
+                backgroundColor: '#ff3333',
+                color: 'white',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                '&:hover': {
+                  backgroundColor: '#e60000',
+                  transform: 'scale(1.05)',
+                },
+                transition: 'all 0.2s ease-in-out',
+                boxShadow: '0 2px 8px rgba(255,0,0,0.3)',
+                margin: '8px',
+                fontWeight: 'bold',
+                textTransform: 'uppercase',
+                fontSize: '0.9rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
               }}
             >
-              <FiRefreshCcw />
-              {"Оновити список "}
+              <span style={{ fontSize: '1.2em' }}>🔄</span>
+              Оновити список
             </IconButton>
           </Tooltip>
 

@@ -15,7 +15,7 @@ import { IChatMessage, IServerMessage } from './ClientData';
 import socketService from './socketService';
 import { createTitle} from './helpers';
 import { IDialogText, messageFromClient, newMessageNotification, notifSettings, getDialogText } from './helpers/languageHelper';
-import { syncTeacherWithBumes } from './helpers/bumesHelper';
+import {  syncBumesTeacher } from './helpers/bumesHelper';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -183,16 +183,16 @@ function App() {
   const reloadTeacherInfo = async () => {
     try {
       console.log("========= START RELOAD TEACHER INFO =========");
-      //step 1  syncTeacherWithBumes
-      //let currentEmail = 'tamilaryinova@gmail.com';
-      let result = await syncTeacherWithBumes(email);
-      console.info('syncTeacherWithBumes:', result);
+      
+      // Только новая синхронизация!
+      await syncBumesTeacher(teacherId);
+      console.info('Teacher synced successfully');
 
-      //reload page
+      // Перезагрузка страницы
       window.location.reload();
     } catch (error) {
-      //error
-      console.error('Error fetching teacher info:', error);
+      console.error('Error updating teacher info:', error);
+      alert('Error updating information. Please try again.');
     }
   };
 
@@ -350,7 +350,7 @@ useEffect(() => {
       //get source from local storage
       let currentSource = localStorage.getItem('source');
       let email = user.email;
-      //email = 'oksana.baleva27@gmail.com';
+     // email = 'bogdanzubar@gmail.com';
         teacherInfo(email, currentSource)
           .then((data: any) => {
             let clients: any;

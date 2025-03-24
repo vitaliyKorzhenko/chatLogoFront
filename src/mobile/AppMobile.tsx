@@ -12,9 +12,8 @@ import MobileChatWindow from './chatWindow';
 import socketService from '../socketService';
 import { ChatClient } from '../typeClient';
 import { FiLogOut } from 'react-icons/fi';
-import { createTitle } from '../helpers';
 import { IDialogText, messageFromClient, newMessageNotification, notifSettings, getDialogText, chatText, studentsText } from '../helpers/languageHelper';
-import { syncTeacherWithBumes } from '../helpers/bumesHelper';
+import { syncBumesTeacher } from '../helpers/bumesHelper';
 
 const notificationSound = new Audio('/notification.mp3');
 
@@ -89,7 +88,7 @@ function MobileApp() {
         console.log("========= START RELOAD TEACHER INFO =========");
         //step 1  syncTeacherWithBumes
         //let currentEmail = 'tamilaryinova@gmail.com';
-        let result = await syncTeacherWithBumes(email);
+        let result = await syncBumesTeacher(teacherId);
         console.info('syncTeacherWithBumes:', result);
   
         //reload page
@@ -432,19 +431,42 @@ function MobileApp() {
           >
             {email}
           </Typography>
-          {/* <Typography variant="body2" sx={{ color: '#777', fontSize: '0.85rem' }}>
-          {createTitle(source)}
-          </Typography> */}
         </Box>
-        <IconButton
-          color="primary"
-          size="medium"
-          onClick={async () => {
-            await auth.signOut();
-          }}
-        >
-          <FiLogOut />
-        </IconButton>
+        <Box display="flex" alignItems="center" gap={1}>
+          <IconButton
+            onClick={reloadTeacherInfo}
+            sx={{
+              backgroundColor: '#ff3333',
+              color: 'white',
+              borderRadius: '8px',
+              padding: '8px 16px',
+              '&:hover': {
+                backgroundColor: '#e60000',
+                transform: 'scale(1.05)',
+              },
+              transition: 'all 0.2s ease-in-out',
+              boxShadow: '0 2px 8px rgba(255,0,0,0.3)',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              fontSize: '0.9rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <span style={{ fontSize: '1.2em' }}>🔄</span>
+            Оновити список
+          </IconButton>
+          <IconButton
+            color="primary"
+            size="medium"
+            onClick={async () => {
+              await auth.signOut();
+            }}
+          >
+            <FiLogOut />
+          </IconButton>
+        </Box>
       </Box>
 
       <Tabs

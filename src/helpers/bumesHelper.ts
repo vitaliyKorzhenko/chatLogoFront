@@ -2,29 +2,6 @@
 
 const BUMES_URL = 'https://msg.slideedu.com/bumes';
 
-export const syncTeacherWithBumes = async (email: string) => {
-  try {
-    const formData = new URLSearchParams();
-    formData.append("email", email);
-
-    const response = await fetch(`${BUMES_URL}/findTeacherInfoByEmail`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: formData.toString(),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Request failed: ${response.statusText}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Error fetching teacher info:", error);
-    return null;
-  }
-};
 
 export const sendBumesMessage = async (customerId: number, message: string) => {
   try {
@@ -44,6 +21,27 @@ export const sendBumesMessage = async (customerId: number, message: string) => {
     return response.json();
   } catch (error) {
     console.error('Error sending bumes message:', error);
+    throw error;
+  }
+};
+
+// Новый метод синхронизации
+export const syncBumesTeacher = async (teacherId: number) => {
+  try {
+    const response = await fetch(`${BUMES_URL}/sync/${teacherId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Sync failed: ${response.statusText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error syncing teacher:', error);
     throw error;
   }
 };
