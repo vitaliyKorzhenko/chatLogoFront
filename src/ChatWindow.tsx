@@ -153,7 +153,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
         let currentClient = clients.find((client) => client.id === selectedClient);
         console.log('currentClient', currentClient);
         if (currentClient) {
-        await sendBumesMessage(currentClient?.id, contextMenu.message.text);
+          const forwardedText = `🔄 Переслано від кліента, чат підтримки:\n\n${contextMenu.message.text}`;
+         await sendBumesMessage(currentClient?.id, forwardedText);
         }
         
         // Отправляем уведомление клиенту

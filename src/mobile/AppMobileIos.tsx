@@ -392,17 +392,11 @@ function MobileApp() {
     }));
   };
 
+
   if (!isLoggedIn || !socketInitialized) {
     return <Login updateSource={updateSource} />;
   }
 
-   const handleOpenSettings = () => {
-      alert(
-        notifSettings(source)
-      );
-    };
-  
-    let textDialog: IDialogText = getDialogText(source);
   
 
   return (

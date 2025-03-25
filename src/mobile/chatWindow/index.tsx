@@ -145,7 +145,8 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
   const handleForwardToAdmin = async () => {
     if (contextMenu?.message && selectedClient) {
       try {
-        await sendBumesMessage(selectedClient, contextMenu.message.text);
+        const forwardedText = `🔄 Переслано від кліента, чат підтримки:\n\n${contextMenu.message.text}`;
+        await sendBumesMessage(selectedClient, forwardedText);
         
         onSendMessage(
           "Ваше питання передано адміністратору. Найближчим часом адміністратор зателефонує вами.",
