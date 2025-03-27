@@ -145,7 +145,7 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
   const handleForwardToAdmin = async () => {
     if (contextMenu?.message && selectedClient) {
       try {
-        const forwardedText = `🔄 Переслано від кліента, чат підтримки:\n\n${contextMenu.message.text}`;
+        const forwardedText = `🔄 Переслано з чату з Логопедом:\n\n${contextMenu.message.text}`;
         await sendBumesMessage(selectedClient, forwardedText);
         
         onSendMessage(
@@ -242,12 +242,15 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
       variant="standard"
       multiline
       minRows={1}
-      maxRows={6}
       value={newMessage}
       onChange={(e) => setNewMessage(e.target.value)}
       placeholder="Type a message..."
+      inputProps={{
+        maxLength: undefined,
+        style: { maxHeight: 'none' }
+      }}
       InputProps={{
-        disableUnderline: true, // Убираем стандартную линию под текстом
+        disableUnderline: true,
         endAdornment: (
           <IconButton 
             onClick={handleSendMessage}

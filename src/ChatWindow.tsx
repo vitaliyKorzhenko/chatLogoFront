@@ -153,7 +153,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
         let currentClient = clients.find((client) => client.id === selectedClient);
         console.log('currentClient', currentClient);
         if (currentClient) {
-          const forwardedText = `🔄 Переслано від кліента, чат підтримки:\n\n${contextMenu.message.text}`;
+          const forwardedText = `🔄 Переслано з чату з Логопедом:\n\n${contextMenu.message.text}`;
          await sendBumesMessage(currentClient?.id, forwardedText);
         }
         
@@ -308,9 +308,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
             maxRows={4}
             value={newMessage}
             onChange={(e) => {
-              if (e.target.value.length <= 255) {
+              
                 setNewMessage(e.target.value);
-              }
+              
             }}
             placeholder="Type your message..."
                InputProps={{

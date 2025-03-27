@@ -29,7 +29,7 @@ export const sendBumesMessage = async (customerId: number, message: string) => {
 export const syncBumesTeacher = async (teacherId: number) => {
   try {
     const response = await fetch(`${BUMES_URL}/sync/${teacherId}`, {
-      method: 'GET',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       }
