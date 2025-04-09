@@ -146,32 +146,43 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
   const selectedClientName = clients.find((client) => client.id === selectedClient)?.name || 'Unknown Client';
   
 
-  const handleForwardToAdmin = async () => {
-    if (contextMenu?.message) {
-      try {
-        // Отправляем сообщение админу
-        let currentClient = clients.find((client) => client.id === selectedClient);
-        console.log('currentClient', currentClient);
-        if (currentClient) {
-          const forwardedText = `🔄 Переслано з чату з Логопедом:\n\n${contextMenu.message.text}`;
-         await sendBumesMessage(currentClient?.id, forwardedText);
+  const [selectedMessages, setSelectedMessages] = useState<IChatMessage[]>([]);
+
+  const handleMessageSelect = (message: IChatMessage) => {
+    if (message.sender === 'client') {
+      setSelectedMessages(prev => {
+        const isSelected = prev.some(m => m.id === message.id);
+        if (isSelected) {
+          return prev.filter(m => m.id !== message.id);
+        } else {
+          return [...prev, message];
         }
+      });
+    }
+  };
+
+  const handleForwardToAdmin = async () => {
+    if (selectedMessages.length > 0 && selectedClient) {
+      try {
+        const forwardedText = `🔄 Переслано від кліента, чат підтримки:\n\n${selectedMessages
+          .map(msg => `${msg.timestamp}: ${msg.text}`)
+          .join('\n\n')}`;
         
-        // Отправляем уведомление клиенту
+        await sendBumesMessage(selectedClient, forwardedText);
+        
         onSendMessage(
           "Ваше питання передано адміністратору. Найближчим часом адміністратор зателефонує вами.",
           false,
           false
         );
 
-        // Показываем алерт об успешной отправке
-        alert("Message has been forwarded to admin successfully!");
+        alert("Messages have been forwarded to admin successfully!");
+        setSelectedMessages([]);
       } catch (error) {
-        console.error('Error forwarding message to admin:', error);
-        alert("Failed to forward message to admin. Please try again.");
+        console.error('Error forwarding messages to admin:', error);
+        alert("Failed to forward messages to admin. Please try again.");
       }
     }
-    handleCloseContextMenu();
   };
 
   return (
@@ -184,10 +195,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
       sx={{
         backgroundColor: '#ffffff',
         overflow: 'hidden',
-        ...sx, // Пользовательские стили
+        ...sx,
       }}
     >
-          {isUploading && (
+      {isUploading && (
         <Box
           sx={{
             position: 'absolute',
@@ -213,30 +224,46 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
           {selectedClientName}
         </Typography>
         <Box display="flex" gap={1}>
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => {
-              navigator.clipboard.writeText(getTelegramLink(selectedClient || 0));
-              //alert
-              alert(getTgLink(source));
-
-            }}
-            sx={{
-              textTransform: 'none',
-              color: '#007bff',
-              borderColor: '#007bff',
-              '&:hover': {
-                backgroundColor: '#e6f7ff',
-                borderColor: '#0056b3',
-              },
-            }}
-          >
-            {' 🔗 Telegram'}
-          </Button>
+          {selectedMessages.length > 0 ? (
+            <Button
+              variant="contained"
+              size="small"
+              onClick={handleForwardToAdmin}
+              sx={{
+                textTransform: 'none',
+                color: '#fff',
+                backgroundColor: '#007bff',
+                '&:hover': {
+                  backgroundColor: '#0056b3',
+                },
+              }}
+            >
+              Forward to Admin ({selectedMessages.length})
+            </Button>
+          ) : (
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => {
+                navigator.clipboard.writeText(getTelegramLink(selectedClient || 0));
+                alert(getTgLink(source));
+              }}
+              sx={{
+                textTransform: 'none',
+                color: '#007bff',
+                borderColor: '#007bff',
+                '&:hover': {
+                  backgroundColor: '#e6f7ff',
+                  borderColor: '#0056b3',
+                },
+              }}
+            >
+              {' 🔗 Telegram'}
+            </Button>
+          )}
         </Box>
       </Box>
-  
+
       {/* Messages */}
       <Box
         flexGrow={1}
@@ -255,15 +282,26 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
             display="flex"
             flexDirection={message.sender === 'client' ? 'row' : 'row-reverse'}
             mb={1}
+            onClick={() => handleMessageSelect(message)}
+            sx={{
+              cursor: message.sender === 'client' ? 'pointer' : 'default',
+              backgroundColor: selectedMessages.some(m => m.id === message.id) ? 'rgba(0, 120, 215, 0.1)' : 'transparent',
+              borderRadius: '12px',
+              padding: '8px',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                transform: message.sender === 'client' ? 'scale(1.02)' : 'none'
+              }
+            }}
           >
             <Box
-            bgcolor={
-              message.format === 'text'
-                ? message.sender === 'client'
-                  ? '#D0F0C0' // Цвет для клиента
-                  : '#0078D7' // Цвет для сервера/бота
-                : '#FFFFFF' // Белый для всех остальных форматов
-            }
+              bgcolor={
+                message.format === 'text'
+                  ? message.sender === 'client'
+                    ? '#D0F0C0'
+                    : '#0078D7'
+                  : '#FFFFFF'
+              }
               p={1.5}
               borderRadius="12px"
               maxWidth="70%"
@@ -271,9 +309,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
               onContextMenu={(e) => {
                 handleContextMenu(e.nativeEvent, message);
               }}
-              >
+            >
               {renderMessageContent(message)}
-              {/* {message.text} */}
               <Typography variant="caption" display="block" textAlign="right" mt={0.5}>
                 {message.timestamp}
               </Typography>
@@ -282,7 +319,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
         ))}
         <div ref={messagesEndRef} />
       </Box>
-  
+
       {/* Input */}
       <Box display="flex" flexDirection="column" p={2} boxShadow={1} sx={{ flexShrink: 0, margin: 0 }}>
         <Box display="flex" alignItems="center">

@@ -34,6 +34,8 @@ export const syncBumesTeacher = async (teacherId: number) => {
         'Content-Type': 'application/json'
       }
     });
+
+    console.log('Response: sync teacher', response);
     
     if (!response.ok) {
       throw new Error(`Sync failed: ${response.statusText}`);
