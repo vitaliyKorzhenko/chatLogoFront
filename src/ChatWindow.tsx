@@ -473,9 +473,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
   }
 >
   <MenuItem onClick={handleCopyMessage}>📎 copy</MenuItem>
-  {contextMenu?.message?.sender === 'client' ? (
-    <MenuItem onClick={handleForwardToAdmin}>📤 Forward to Admin</MenuItem>
-  ) : (
+  {contextMenu?.message?.sender === 'client' ? ( <></>) : (
     deleteMessage && (
       <MenuItem onClick={handleDeleteMessage} sx={{ color: 'red' }}>
         🗑️ delete

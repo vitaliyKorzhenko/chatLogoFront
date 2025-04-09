@@ -402,14 +402,10 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
         }
       >
         <MenuItem onClick={handleCopyMessage}>📎 copy</MenuItem>
-        {contextMenu?.message?.sender === 'client' ? (
-          <MenuItem onClick={handleForwardToAdmin}>📤 Forward to Admin</MenuItem>
-        ) : (
-          deleteMessage && (
-            <MenuItem onClick={handleDeleteMessage} sx={{ color: 'red' }}>
-              🗑️ delete
-            </MenuItem>
-          )
+        {deleteMessage && (
+          <MenuItem onClick={handleDeleteMessage} sx={{ color: 'red' }}>
+            🗑️ delete
+          </MenuItem>
         )}
       </Menu>
     </Box>
