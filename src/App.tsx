@@ -252,7 +252,10 @@ useEffect(() => {
       const newMessages = sortedMessages.map((msg: IServerMessage) => ({
         clientId,
         text: msg.messageText,
-        timestamp: new Date(msg.createdAt).toLocaleTimeString([], {
+        timestamp: new Date(msg.createdAt).toLocaleString([], {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
           hour: '2-digit',
           minute: '2-digit',
         }),
@@ -272,7 +275,10 @@ useEffect(() => {
       const newMessage: IChatMessage = {
         clientId: data.message.clientId,
         text: data.message.text,
-        timestamp: new Date(data.message.timestamp || Date.now()).toLocaleTimeString([], {
+        timestamp: new Date(data.message.timestamp || Date.now()).toLocaleString([], {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
           hour: '2-digit',
           minute: '2-digit',
         }),
@@ -350,7 +356,7 @@ useEffect(() => {
       //get source from local storage
       let currentSource = localStorage.getItem('source');
       let email = user.email;
-      //xxemail = 'ktmironenko@gmail.com';
+       // email = 'zamana1596321@gmail.com';
         teacherInfo(email, currentSource)
           .then((data: any) => {
             let clients: any;
@@ -459,7 +465,13 @@ useEffect(() => {
       id: Date.now(),
       clientId: selectedClient,
       text: message,
-      timestamp: new Date().toLocaleTimeString(),
+      timestamp: new Date().toLocaleString([], {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
       source: 'chat',
       sender: 'teacher',
       isEmail: isEmail,

@@ -185,6 +185,37 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
     }
   };
 
+  // Функция для группировки сообщений по дням
+  const groupMessagesByDate = (messages: IChatMessage[]) => {
+    const groups: { [key: string]: IChatMessage[] } = {};
+    console.log("MEEESAGES", messages);
+    messages.forEach(message => {
+      const date = new Date(message.timestamp);
+      const dateKey = `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+      
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey].push(message);
+    });
+    
+    return groups;
+  };
+
+  // Функция для форматирования полной даты-времени
+  const formatFullDateTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    
+    return `${day}-${month}-${year} ${hours}:${minutes}`;
+  };
+
+  const messageGroups = groupMessagesByDate(messages);
+
   return (
     <Box
       display="flex"
@@ -240,27 +271,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
             >
               Forward to Admin ({selectedMessages.length})
             </Button>
-          ) : (
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => {
-                navigator.clipboard.writeText(getTelegramLink(selectedClient || 0));
-                alert(getTgLink(source));
-              }}
-              sx={{
-                textTransform: 'none',
-                color: '#007bff',
-                borderColor: '#007bff',
-                '&:hover': {
-                  backgroundColor: '#e6f7ff',
-                  borderColor: '#0056b3',
-                },
-              }}
-            >
-              {' 🔗 Telegram'}
-            </Button>
-          )}
+          ) : <></>}
         </Box>
       </Box>
 
@@ -276,46 +287,85 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
           padding: 0,
         }}
       >
-        {messages.map((message, index) => (
-          <Box
-            key={index}
-            display="flex"
-            flexDirection={message.sender === 'client' ? 'row' : 'row-reverse'}
-            mb={1}
-            onClick={() => handleMessageSelect(message)}
-            sx={{
-              cursor: message.sender === 'client' ? 'pointer' : 'default',
-              backgroundColor: selectedMessages.some(m => m.id === message.id) ? 'rgba(0, 120, 215, 0.1)' : 'transparent',
-              borderRadius: '12px',
-              padding: '8px',
-              transition: 'all 0.2s ease',
-              '&:hover': {
-                transform: message.sender === 'client' ? 'scale(1.02)' : 'none'
-              }
-            }}
-          >
+        {Object.entries(messageGroups).map(([date, messagesInDate]) => (
+          <>
             <Box
-              bgcolor={
-                message.format === 'text'
-                  ? message.sender === 'client'
-                    ? '#D0F0C0'
-                    : '#0078D7'
-                  : '#FFFFFF'
-              }
-              p={1.5}
-              borderRadius="12px"
-              maxWidth="70%"
-              sx={{ color: message.sender === 'client' ? '#333' : '#fff' }}
-              onContextMenu={(e) => {
-                handleContextMenu(e.nativeEvent, message);
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              sx={{ 
+                margin: '20px 0 10px 0',
+                position: 'relative'
               }}
             >
-              {renderMessageContent(message)}
-              <Typography variant="caption" display="block" textAlign="right" mt={0.5}>
-                {message.timestamp}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: 0,
+                  right: 0,
+                  height: '1px',
+                  backgroundColor: '#e0e0e0',
+                  zIndex: 1
+                }}
+              />
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  backgroundColor: '#ffffff',
+                  padding: '0 12px',
+                  color: '#333',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  zIndex: 2,
+                  position: 'relative'
+                }}
+              >
+                {date}
               </Typography>
             </Box>
-          </Box>
+            {messagesInDate.map((message, index) => (
+              <Box
+                key={index}
+                display="flex"
+                flexDirection={message.sender === 'client' ? 'row' : 'row-reverse'}
+                mb={1}
+                onClick={() => handleMessageSelect(message)}
+                sx={{
+                  cursor: message.sender === 'client' ? 'pointer' : 'default',
+                  backgroundColor: selectedMessages.some(m => m.id === message.id) ? 'rgba(0, 120, 215, 0.1)' : 'transparent',
+                  borderRadius: '12px',
+                  padding: '8px',
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    transform: message.sender === 'client' ? 'scale(1.02)' : 'none'
+                  }
+                }}
+              >
+                <Box
+                  bgcolor={
+                    message.format === 'text'
+                      ? message.sender === 'client'
+                        ? '#D0F0C0'
+                        : '#0078D7'
+                      : '#FFFFFF'
+                  }
+                  p={1.5}
+                  borderRadius="12px"
+                  maxWidth="70%"
+                  sx={{ color: message.sender === 'client' ? '#333' : '#fff' }}
+                  onContextMenu={(e) => {
+                    handleContextMenu(e.nativeEvent, message);
+                  }}
+                >
+                  {renderMessageContent(message)}
+                  <Typography variant="caption" display="block" textAlign="right" mt={0.5}>
+                    {formatFullDateTime(message.timestamp)}
+                  </Typography>
+                </Box>
+              </Box>
+            ))}
+          </>
         ))}
         <div ref={messagesEndRef} />
       </Box>
