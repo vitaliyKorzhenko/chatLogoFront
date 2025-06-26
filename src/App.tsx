@@ -1,9 +1,19 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  Box
+  Box,
+  CssBaseline,
+  ThemeProvider,
+  createTheme,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Typography
 } from '@mui/material';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from "@mui/material";
-
+import { initializeApp } from 'firebase/app';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { io, Socket } from 'socket.io-client';
 import './App.css';
 import Login from './Login';
 import Sidebar from './SideBar';
@@ -13,9 +23,10 @@ import { teacherInfo } from './axios/api';
 import { ChatClient } from './typeClient';
 import { IChatMessage, IServerMessage } from './ClientData';
 import socketService from './socketService';
-import { createTitle} from './helpers';
+import { createTitle } from './helpers';
 import { IDialogText, messageFromClient, newMessageNotification, notifSettings, getDialogText } from './helpers/languageHelper';
 import {  syncBumesTeacher } from './helpers/bumesHelper';
+import { isoToLocalString, createTimestampString } from './helpers/dateHelper';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -29,13 +40,11 @@ function App() {
   const [unreadMessages, setUnreadMessages] = useState<Record<number, number>>({});
   const [totalUnreadMessages, setTotalUnreadMessages] = useState(0);
 
-
   const [titleBlinker, setTitleBlinker] = useState<ReturnType<typeof setInterval> | null>(null);
 
   const [isTabActive, setIsTabActive] = useState(true); // Вкладка активна
 
   const [loginSource, setLoginSource] = useState<string | null>('ua');
-
 
   //delete chatMessages
   const deleteChatMessage = (message: IChatMessage) => {
@@ -226,39 +235,21 @@ useEffect(() => {
 
       console.log('Server Messages', serverMessages.length, 'First message', serverMessages[0]);
 
-
-
-      // const sortedMessages = serverMessages.sort((a: IServerMessage, b: IServerMessage) =>
-      //   new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-      // );
-
-      //filter server messages isActive = true
-
-
-
-
       let sortedMessages = serverMessages.sort((a: IServerMessage, b: IServerMessage) =>
         a.id - b.id
       );
 
       // filter sorted messages by isActive = true
-
       sortedMessages = sortedMessages.filter((msg: IServerMessage) => msg.isActive == true);
       
-
       console.error('Received client messages:', clientId, '==========COUNT MESSAGE ===========', serverMessages.length,  '===== LAST MESSAGE:', serverMessages[serverMessages.length - 1]);
 
+      console.error('Sorted messages:', sortedMessages);  
 
       const newMessages = sortedMessages.map((msg: IServerMessage) => ({
         clientId,
         text: msg.messageText,
-        timestamp: new Date(msg.createdAt).toLocaleString([], {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
+        timestamp: isoToLocalString(msg.createdAt),
         source: msg.messageType === 'tg' ? 'telegram' : 'whatsapp',
         sender: msg.sender === 'client' ? 'client' : 'teacher',
         id: msg.id,
@@ -275,13 +266,7 @@ useEffect(() => {
       const newMessage: IChatMessage = {
         clientId: data.message.clientId,
         text: data.message.text,
-        timestamp: new Date(data.message.timestamp || Date.now()).toLocaleString([], {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
+        timestamp: data.message.timestamp ? isoToLocalString(data.message.timestamp) : createTimestampString(),
         source: data.message.source || 'chat',
         sender: 'client',
         id: data.message.id || Date.now(),
@@ -356,7 +341,7 @@ useEffect(() => {
       //get source from local storage
       let currentSource = localStorage.getItem('source');
       let email = user.email;
-       // email = 'zamana1596321@gmail.com';
+       email = 'tamilaryinova@gmail.com';
         teacherInfo(email, currentSource)
           .then((data: any) => {
             let clients: any;
@@ -465,13 +450,7 @@ useEffect(() => {
       id: Date.now(),
       clientId: selectedClient,
       text: message,
-      timestamp: new Date().toLocaleString([], {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
+      timestamp: createTimestampString(),
       source: 'chat',
       sender: 'teacher',
       isEmail: isEmail,

@@ -81,7 +81,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               }}
             >
               <span style={{ fontSize: '1.2em' }}>🔄</span>
-              Оновити список
+             v.1.1 Оновити список
             </IconButton>
           </Tooltip>
 

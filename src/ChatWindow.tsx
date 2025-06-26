@@ -17,6 +17,7 @@ import DigitalOceanHelper from './digitalOceans';
 import { renderMessageContent } from './helpers';
 import { getTgLink, viaEmailMessage } from './helpers/languageHelper';
 import { sendBumesMessage } from './helpers/bumesHelper';
+import { formatDateTime, formatDateKey } from './helpers/dateHelper';
 
 
 interface ChatWindowProps {
@@ -190,8 +191,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
     const groups: { [key: string]: IChatMessage[] } = {};
     console.log("MEEESAGES", messages);
     messages.forEach(message => {
-      const date = new Date(message.timestamp);
-      const dateKey = `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+      const dateKey = formatDateKey(message.timestamp);
       
       if (!groups[dateKey]) {
         groups[dateKey] = [];
@@ -204,14 +204,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
 
   // Функция для форматирования полной даты-времени
   const formatFullDateTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear();
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    
-    return `${day}-${month}-${year} ${hours}:${minutes}`;
+    return formatDateTime(timestamp);
   };
 
   const messageGroups = groupMessagesByDate(messages);

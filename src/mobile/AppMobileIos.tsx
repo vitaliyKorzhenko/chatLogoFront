@@ -14,6 +14,7 @@ import { ChatClient } from '../typeClient';
 import { FiLogOut } from 'react-icons/fi';
 import { IDialogText, messageFromClient, newMessageNotification, notifSettings, getDialogText, chatText, studentsText } from '../helpers/languageHelper';
 import { syncBumesTeacher } from '../helpers/bumesHelper';
+import { isoToLocalString, createTimestampString } from '../helpers/dateHelper';
 
 const notificationSound = new Audio('/notification.mp3');
 
@@ -169,9 +170,6 @@ function MobileApp() {
 
       console.log('Server Messages', serverMessages.length, 'First message', serverMessages[0]);
 
-
-
-
       let sortedMessages = serverMessages.sort((a: IServerMessage, b: IServerMessage) =>
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
       );
@@ -182,13 +180,7 @@ function MobileApp() {
       const newMessages = sortedMessages.map((msg: IServerMessage) => ({
         clientId,
         text: msg.messageText,
-        timestamp: new Date(msg.createdAt).toLocaleString([], {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
+        timestamp: isoToLocalString(msg.createdAt),
         source: msg.messageType === 'tg' ? 'telegram' : 'whatsapp',
         sender: msg.sender === 'client' ? 'client' : 'teacher',
         id: msg.id,
@@ -205,13 +197,7 @@ function MobileApp() {
       const newMessage: IChatMessage = {
         clientId: data.message.clientId,
         text: data.message.text,
-        timestamp: new Date(data.message.timestamp || Date.now()).toLocaleString([], {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
+        timestamp: data.message.timestamp ? isoToLocalString(data.message.timestamp) : createTimestampString(),
         source: data.message.source || 'chat',
         sender: 'client',
         id: data.message.id || Date.now(),
@@ -375,13 +361,7 @@ function MobileApp() {
       id: Date.now(),
       clientId: selectedClient,
       text: message,
-      timestamp: new Date().toLocaleString([], {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
+      timestamp: createTimestampString(),
       source: 'chat',
       sender: 'teacher',
       isEmail: isEmail,
@@ -453,7 +433,7 @@ function MobileApp() {
             }}
           >
             <span style={{ fontSize: '1.2em' }}>🔄</span>
-            Оновити список
+            v.1.1 Оновити список
           </IconButton>
           <IconButton
             color="primary"
