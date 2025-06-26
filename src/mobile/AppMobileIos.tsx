@@ -433,7 +433,7 @@ function MobileApp() {
             }}
           >
             <span style={{ fontSize: '1.2em' }}>🔄</span>
-            v.1.1 Оновити список
+            v.1.01 Оновити список
           </IconButton>
           <IconButton
             color="primary"
