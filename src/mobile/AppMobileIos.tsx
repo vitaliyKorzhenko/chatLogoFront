@@ -487,7 +487,6 @@ function MobileApp() {
             messages={clientsMessages[selectedClient] || []}
             onSendMessage={handleSendMessage}
             source={source}
-            deleteMessage={deleteChatMessage}
           />
         )}
       </Box>

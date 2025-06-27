@@ -25,7 +25,6 @@ interface ChatWindowProps {
   onSendMessage: (message: string, isEmail: boolean, isFile: boolean) => void;
   backToSidebar: () => void;
   source: string;
-  deleteMessage?: (message: IChatMessage) => void;
 }
 
 const MobileChatWindow: React.FC<ChatWindowProps> = ({
@@ -35,7 +34,6 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
   onSendMessage,
   backToSidebar,
   source,
-  deleteMessage,
 }) => {
   const [newMessage, setNewMessage] = useState('');
   const [showStickers, setShowStickers] = useState(false);
@@ -90,13 +88,13 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
     handleCloseContextMenu();
   };
 
-  // ✨ Удаление сообщения
-  const handleDeleteMessage = () => {
-    if (contextMenu?.message && deleteMessage) {
-      deleteMessage(contextMenu.message);
-    }
-    handleCloseContextMenu();
-  };
+  // ✨ Удаление сообщения - УБИРАЕМ
+  // const handleDeleteMessage = () => {
+  //   if (contextMenu?.message && deleteMessage) {
+  //     deleteMessage(contextMenu.message);
+  //   }
+  //   handleCloseContextMenu();
+  // };
   
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -433,7 +431,7 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
         </Box>
       )}
 
-      {/* 📌 Контекстное меню (копирование / удаление) */}
+      {/* Контекстное меню (только копирование) */}
       <Menu
         open={contextMenu !== null}
         onClose={handleCloseContextMenu}
@@ -445,11 +443,6 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
         }
       >
         <MenuItem onClick={handleCopyMessage}>📎 copy</MenuItem>
-        {deleteMessage && (
-          <MenuItem onClick={handleDeleteMessage} sx={{ color: 'red' }}>
-            🗑️ delete
-          </MenuItem>
-        )}
       </Menu>
     </Box>
   );

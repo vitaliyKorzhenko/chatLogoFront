@@ -27,11 +27,9 @@ interface ChatWindowProps {
   messages: IChatMessage[];
   onSendMessage: (message: string, isEmail: boolean, isFile: boolean) => void;
   sx?: object; // Добавляем это свойство
-  deleteMessage?: (message: IChatMessage) => void;
-
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messages, onSendMessage, sx, source, deleteMessage}) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messages, onSendMessage, sx, source }) => {
   const [newMessage, setNewMessage] = useState('');
   const [showStickers, setShowStickers] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -73,13 +71,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
     handleCloseContextMenu();
   };
 
-  // ✨ Удаление сообщения
-  const handleDeleteMessage = () => {
-    if (contextMenu?.message && deleteMessage) {
-      deleteMessage(contextMenu.message);
-    }
-    handleCloseContextMenu();
-  };
+  // ✨ Удаление сообщения - УБИРАЕМ
+  // const handleDeleteMessage = () => {
+  //   if (contextMenu?.message && deleteMessage) {
+  //     deleteMessage(contextMenu.message);
+  //   }
+  //   handleCloseContextMenu();
+  // };
   
 
 
@@ -504,7 +502,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
         </Box>
       )}
 
-      {/* 📌 Контекстное меню (копирование / удаление) */}
+      {/* �� Контекстное меню (только копирование) */}
       <Menu
   open={contextMenu !== null}
   onClose={handleCloseContextMenu}
@@ -516,13 +514,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
   }
 >
   <MenuItem onClick={handleCopyMessage}>📎 copy</MenuItem>
-  {contextMenu?.message?.sender === 'client' ? ( <></>) : (
-    deleteMessage && (
-      <MenuItem onClick={handleDeleteMessage} sx={{ color: 'red' }}>
-        🗑️ delete
-      </MenuItem>
-    )
-  )}
 </Menu>
 
     </Box>

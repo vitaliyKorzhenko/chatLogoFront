@@ -542,7 +542,6 @@ useEffect(() => {
           overflow: 'hidden', // Убирает горизонтальный скроллинг
           margin: 0, // Убираем возможные отступы
         }}
-        deleteMessage={deleteChatMessage}
       />
       </Box>
      
