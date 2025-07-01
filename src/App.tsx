@@ -27,6 +27,7 @@ import { createTitle } from './helpers';
 import { IDialogText, messageFromClient, newMessageNotification, notifSettings, getDialogText } from './helpers/languageHelper';
 import {  syncBumesTeacher } from './helpers/bumesHelper';
 import { isoToLocalString, createTimestampString } from './helpers/dateHelper';
+import { IEditMessageModel } from './ClientData';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -474,6 +475,26 @@ useEffect(() => {
     }));
   };
 
+  const handleEditMessage = (editData: IEditMessageModel) => {
+    if (!selectedClient) {
+      console.error('No client selected');
+      return;
+    }
+
+    console.error('Editing message:', editData);
+    socket.emit('editMessage', editData);
+
+    // Обновляем сообщение локально - только текст, timestamp оставляем как есть
+    setClientsMessages((prev) => ({
+      ...prev,
+      [selectedClient]: (prev[selectedClient] || []).map(msg => 
+        msg.id === editData.id 
+          ? { ...msg, text: editData.newMessage }
+          : msg
+      ),
+    }));
+  };
+
   if (!isLoggedIn || !socketInitialized) {
     return <Login updateSource={updateSource} />;
   }
@@ -537,6 +558,7 @@ useEffect(() => {
         clients={chatClients}
         messages={filteredMessages}
         onSendMessage={handleSendMessage}
+        onEditMessage={handleEditMessage}
         sx={{
           flexGrow: 1, // Занимает все оставшееся пространство
           overflow: 'hidden', // Убирает горизонтальный скроллинг

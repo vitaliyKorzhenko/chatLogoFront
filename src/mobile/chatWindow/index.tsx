@@ -11,7 +11,7 @@ import {
   MenuItem
 } from '@mui/material';
 
-import { IChatMessage } from '../../ClientData';
+import { IChatMessage, IEditMessageModel } from '../../ClientData';
 import DigitalOceanHelper from '../../digitalOceans';
 import { renderMessageContent } from '../../helpers';
 import { getTgLink, viaEmailMessage } from '../../helpers/languageHelper';
@@ -23,6 +23,7 @@ interface ChatWindowProps {
   clients: { id: number; name: string }[];
   messages: IChatMessage[];
   onSendMessage: (message: string, isEmail: boolean, isFile: boolean) => void;
+  onEditMessage?: (editData: IEditMessageModel) => void;
   backToSidebar: () => void;
   source: string;
 }
@@ -32,6 +33,7 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
   clients,
   messages,
   onSendMessage,
+  onEditMessage,
   backToSidebar,
   source,
 }) => {
@@ -45,6 +47,10 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
   const [selectedMessages, setSelectedMessages] = useState<IChatMessage[]>([]);
 
   const [isUploading, setIsUploading] = useState(false); // Состояние для индикатора загрузки
+  
+  // Состояние для редактирования сообщения
+  const [editingMessage, setEditingMessage] = useState<IChatMessage | null>(null);
+  const [editText, setEditText] = useState('');
   
   // ✨ Добавляем состояние для контекстного меню
   const [contextMenu, setContextMenu] = useState<{
@@ -88,14 +94,43 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
     handleCloseContextMenu();
   };
 
-  // ✨ Удаление сообщения - УБИРАЕМ
-  // const handleDeleteMessage = () => {
-  //   if (contextMenu?.message && deleteMessage) {
-  //     deleteMessage(contextMenu.message);
-  //   }
-  //   handleCloseContextMenu();
-  // };
-  
+  // ✨ Редактирование сообщения
+  const handleEditMessage = () => {
+    if (contextMenu?.message && contextMenu.message.sender === 'teacher') {
+      setEditingMessage(contextMenu.message);
+      setEditText(contextMenu.message.text);
+    }
+    handleCloseContextMenu();
+  };
+
+  // ✨ Сохранение отредактированного сообщения
+  const handleSaveEdit = () => {
+    if (editingMessage && onEditMessage && editText.trim()) {
+      onEditMessage({
+        id: editingMessage.id,
+        newMessage: editText.trim(),
+        clientId: editingMessage.clientId,
+        source: source
+      });
+      setEditingMessage(null);
+      setEditText('');
+    }
+  };
+
+  // ✨ Отмена редактирования
+  const handleCancelEdit = () => {
+    setEditingMessage(null);
+    setEditText('');
+  };
+
+  // Получаем последнее сообщение учителя
+  const getLastTeacherMessage = () => {
+    const teacherMessages = messages.filter(msg => msg.sender === 'teacher');
+    return teacherMessages.length > 0 ? teacherMessages[teacherMessages.length - 1] : null;
+  };
+
+  const lastTeacherMessage = getLastTeacherMessage();
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -337,10 +372,81 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
                     handleContextMenu(e.nativeEvent, message);
                   }}
                 >
-                  {renderMessageContent(message)}
-                  <Typography variant="caption" display="block" textAlign="right" mt={0.5}>
-                    {formatFullDateTime(message.timestamp)}
-                  </Typography>
+                  {editingMessage && editingMessage.id === message.id ? (
+                    <Box sx={{ minWidth: '250px', maxWidth: '400px' }}>
+                      <TextField
+                        fullWidth
+                        multiline
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        variant="outlined"
+                        size="small"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            backgroundColor: '#fff',
+                            color: '#333',
+                            '& fieldset': {
+                              borderColor: '#007bff',
+                            },
+                          },
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSaveEdit();
+                          }
+                          if (e.key === 'Escape') {
+                            handleCancelEdit();
+                          }
+                        }}
+                      />
+                      <Box display="flex" gap={1} mt={1} justifyContent="flex-end">
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          onClick={handleCancelEdit}
+                          sx={{ 
+                            fontSize: '0.7rem', 
+                            padding: '4px 12px',
+                            color: '#fff',
+                            borderColor: '#007bff',
+                            backgroundColor: '#007bff',
+                            '&:hover': {
+                              borderColor: '#0056b3',
+                              backgroundColor: '#0056b3'
+                            }
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          onClick={handleSaveEdit}
+                          sx={{ 
+                            fontSize: '0.7rem', 
+                            padding: '4px 12px',
+                            backgroundColor: '#007bff',
+                            '&:hover': {
+                              backgroundColor: '#0056b3'
+                            }
+                          }}
+                        >
+                          Save
+                        </Button>
+                      </Box>
+                    </Box>
+                  ) : (
+                    <>
+                      {renderMessageContent(message)}
+                      <Typography variant="caption" display="block" textAlign="right" mt={0.5}>
+                        {formatFullDateTime(message.timestamp)}
+                        {message.sender === 'teacher' && lastTeacherMessage && message.id === lastTeacherMessage.id && (
+                          <span style={{ marginLeft: '8px', opacity: 0.7 }}>✏️</span>
+                        )}
+                      </Typography>
+                    </>
+                  )}
                 </Box>
               </Box>
             ))}
@@ -431,7 +537,7 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
         </Box>
       )}
 
-      {/* Контекстное меню (только копирование) */}
+      {/* Контекстное меню (копирование и редактирование) */}
       <Menu
         open={contextMenu !== null}
         onClose={handleCloseContextMenu}
@@ -443,6 +549,11 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
         }
       >
         <MenuItem onClick={handleCopyMessage}>📎 copy</MenuItem>
+        {contextMenu?.message?.sender === 'teacher' && 
+         lastTeacherMessage && 
+         contextMenu.message.id === lastTeacherMessage.id && (
+          <MenuItem onClick={handleEditMessage}>✏️ edit</MenuItem>
+        )}
       </Menu>
     </Box>
   );

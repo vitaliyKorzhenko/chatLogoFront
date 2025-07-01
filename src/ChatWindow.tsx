@@ -12,7 +12,7 @@ import {
   MenuItem
 } from '@mui/material';
 
-import { IChatMessage } from './ClientData';
+import { IChatMessage, IEditMessageModel } from './ClientData';
 import DigitalOceanHelper from './digitalOceans';
 import { renderMessageContent } from './helpers';
 import { getTgLink, viaEmailMessage } from './helpers/languageHelper';
@@ -26,10 +26,11 @@ interface ChatWindowProps {
   clients: { id: number; name: string, chatEnabled: boolean }[];
   messages: IChatMessage[];
   onSendMessage: (message: string, isEmail: boolean, isFile: boolean) => void;
+  onEditMessage?: (editData: IEditMessageModel) => void;
   sx?: object; // Добавляем это свойство
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messages, onSendMessage, sx, source }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messages, onSendMessage, onEditMessage, sx, source }) => {
   const [newMessage, setNewMessage] = useState('');
   const [showStickers, setShowStickers] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -41,6 +42,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
   const [selectedFile, setSelectedFile] = useState<File | null>(null); // Состояние для выбранного файла
 
   const [isUploading, setIsUploading] = useState(false); // Состояние для индикатора загрузки
+
+  // Состояние для редактирования сообщения
+  const [editingMessage, setEditingMessage] = useState<IChatMessage | null>(null);
+  const [editText, setEditText] = useState('');
 
     // ✨ Добавляем состояние для контекстного меню
     const [contextMenu, setContextMenu] = useState<{
@@ -71,15 +76,42 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
     handleCloseContextMenu();
   };
 
-  // ✨ Удаление сообщения - УБИРАЕМ
-  // const handleDeleteMessage = () => {
-  //   if (contextMenu?.message && deleteMessage) {
-  //     deleteMessage(contextMenu.message);
-  //   }
-  //   handleCloseContextMenu();
-  // };
-  
+  // ✨ Редактирование сообщения
+  const handleEditMessage = () => {
+    if (contextMenu?.message && contextMenu.message.sender === 'teacher') {
+      setEditingMessage(contextMenu.message);
+      setEditText(contextMenu.message.text);
+    }
+    handleCloseContextMenu();
+  };
 
+  // ✨ Сохранение отредактированного сообщения
+  const handleSaveEdit = () => {
+    if (editingMessage && onEditMessage && editText.trim()) {
+      onEditMessage({
+        id: editingMessage.id,
+        newMessage: editText.trim(),
+        clientId: editingMessage.clientId,
+        source: source
+      });
+      setEditingMessage(null);
+      setEditText('');
+    }
+  };
+
+  // ✨ Отмена редактирования
+  const handleCancelEdit = () => {
+    setEditingMessage(null);
+    setEditText('');
+  };
+
+  // Получаем последнее сообщение учителя
+  const getLastTeacherMessage = () => {
+    const teacherMessages = messages.filter(msg => msg.sender === 'teacher');
+    return teacherMessages.length > 0 ? teacherMessages[teacherMessages.length - 1] : null;
+  };
+
+  const lastTeacherMessage = getLastTeacherMessage();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -349,10 +381,81 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
                     handleContextMenu(e.nativeEvent, message);
                   }}
                 >
-                  {renderMessageContent(message)}
-                  <Typography variant="caption" display="block" textAlign="right" mt={0.5}>
-                    {formatFullDateTime(message.timestamp)}
-                  </Typography>
+                  {editingMessage && editingMessage.id === message.id ? (
+                    <Box sx={{ minWidth: '300px', maxWidth: '500px' }}>
+                      <TextField
+                        fullWidth
+                        multiline
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        variant="outlined"
+                        size="small"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            backgroundColor: '#fff',
+                            color: '#333',
+                            '& fieldset': {
+                              borderColor: '#007bff',
+                            },
+                          },
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSaveEdit();
+                          }
+                          if (e.key === 'Escape') {
+                            handleCancelEdit();
+                          }
+                        }}
+                      />
+                      <Box display="flex" gap={1} mt={1} justifyContent="flex-end">
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          onClick={handleCancelEdit}
+                          sx={{ 
+                            fontSize: '0.7rem', 
+                            padding: '4px 12px',
+                            color: '#fff',
+                            borderColor: '#007bff',
+                            backgroundColor: '#007bff',
+                            '&:hover': {
+                              borderColor: '#0056b3',
+                              backgroundColor: '#0056b3'
+                            }
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          onClick={handleSaveEdit}
+                          sx={{ 
+                            fontSize: '0.7rem', 
+                            padding: '4px 12px',
+                            backgroundColor: '#007bff',
+                            '&:hover': {
+                              backgroundColor: '#0056b3'
+                            }
+                          }}
+                        >
+                          Save
+                        </Button>
+                      </Box>
+                    </Box>
+                  ) : (
+                    <>
+                      {renderMessageContent(message)}
+                      <Typography variant="caption" display="block" textAlign="right" mt={0.5}>
+                        {formatFullDateTime(message.timestamp)}
+                        {message.sender === 'teacher' && lastTeacherMessage && message.id === lastTeacherMessage.id && (
+                          <span style={{ marginLeft: '8px', opacity: 0.7 }}>✏️</span>
+                        )}
+                      </Typography>
+                    </>
+                  )}
                 </Box>
               </Box>
             ))}
@@ -502,19 +605,24 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
         </Box>
       )}
 
-      {/* �� Контекстное меню (только копирование) */}
+      {/* Контекстное меню (копирование и редактирование) */}
       <Menu
-  open={contextMenu !== null}
-  onClose={handleCloseContextMenu}
-  anchorReference="anchorPosition"
-  anchorPosition={
-    contextMenu !== null
-      ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
-      : undefined
-  }
->
-  <MenuItem onClick={handleCopyMessage}>📎 copy</MenuItem>
-</Menu>
+        open={contextMenu !== null}
+        onClose={handleCloseContextMenu}
+        anchorReference="anchorPosition"
+        anchorPosition={
+          contextMenu !== null
+            ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+            : undefined
+        }
+      >
+        <MenuItem onClick={handleCopyMessage}>📎 copy</MenuItem>
+        {contextMenu?.message?.sender === 'teacher' && 
+         lastTeacherMessage && 
+         contextMenu.message.id === lastTeacherMessage.id && (
+          <MenuItem onClick={handleEditMessage}>✏️ edit</MenuItem>
+        )}
+      </Menu>
 
     </Box>
   );

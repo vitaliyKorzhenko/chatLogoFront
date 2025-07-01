@@ -28,11 +28,34 @@ export const safeParseDate = (dateInput: string | Date | number): Date | null =>
         return date;
       }
       
-      // Если не получилось, возможно это уже отформатированная строка
       // Пытаемся извлечь компоненты даты из строки вида "20.03.2025, 14:25"
-      const match = dateInput.match(/(\d{1,2})\.(\d{1,2})\.(\d{4}),\s*(\d{1,2}):(\d{1,2})/);
-      if (match) {
-        const [, day, month, year, hours, minutes] = match;
+      const match1 = dateInput.match(/(\d{1,2})\.(\d{1,2})\.(\d{4}),\s*(\d{1,2}):(\d{1,2})/);
+      if (match1) {
+        const [, day, month, year, hours, minutes] = match1;
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hours), parseInt(minutes));
+        return isNaN(date.getTime()) ? null : date;
+      }
+      
+      // Пытаемся извлечь компоненты даты из строки вида "20-03-2025 14:25"
+      const match2 = dateInput.match(/(\d{1,2})-(\d{1,2})-(\d{4})\s+(\d{1,2}):(\d{1,2})/);
+      if (match2) {
+        const [, day, month, year, hours, minutes] = match2;
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hours), parseInt(minutes));
+        return isNaN(date.getTime()) ? null : date;
+      }
+      
+      // Пытаемся извлечь компоненты даты из строки вида "20/03/2025 14:25"
+      const match3 = dateInput.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{1,2})/);
+      if (match3) {
+        const [, day, month, year, hours, minutes] = match3;
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hours), parseInt(minutes));
+        return isNaN(date.getTime()) ? null : date;
+      }
+      
+      // Пытаемся извлечь компоненты даты из строки вида "20.03.2025 14:25" (без запятой)
+      const match4 = dateInput.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})\s+(\d{1,2}):(\d{1,2})/);
+      if (match4) {
+        const [, day, month, year, hours, minutes] = match4;
         const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hours), parseInt(minutes));
         return isNaN(date.getTime()) ? null : date;
       }
@@ -80,17 +103,19 @@ export const formatDateKey = (dateInput: string | Date | number): string => {
 
 /**
  * Создает timestamp строку для новых сообщений
- * @returns строка в формате "DD.MM.YYYY, HH:MM"
+ * @returns строка в формате "MM/DD/YYYY, h:mm A"
  */
 export const createTimestampString = (): string => {
   const now = new Date();
-  const day = now.getDate().toString().padStart(2, '0');
   const month = (now.getMonth() + 1).toString().padStart(2, '0');
+  const day = now.getDate().toString().padStart(2, '0');
   const year = now.getFullYear();
-  const hours = now.getHours().toString().padStart(2, '0');
+  const hours = now.getHours();
   const minutes = now.getMinutes().toString().padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const displayHours = hours % 12 || 12;
   
-  return `${day}.${month}.${year}, ${hours}:${minutes}`;
+  return `${month}/${day}/${year}, ${displayHours}:${minutes} ${ampm}`;
 };
 
 /**

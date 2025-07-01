@@ -3,7 +3,7 @@ import { Box, Tabs, Tab, Badge, Typography, IconButton } from '@mui/material';
 import './AppMobile.css';
 import { auth } from '../firebaseConfig';
 import { teacherInfo } from '../axios/api';
-import { IChatMessage, IServerMessage } from '../ClientData';
+import { IChatMessage, IServerMessage, IEditMessageModel } from '../ClientData';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
 
 import Login from '../Login';
@@ -384,6 +384,26 @@ function MobileApp() {
     }));
   };
 
+  const handleEditMessage = (editData: IEditMessageModel) => {
+    if (!selectedClient) {
+      console.error('No client selected');
+      return;
+    }
+
+    console.error('Editing message:', editData);
+    socket.emit('editMessage', editData);
+
+    // Обновляем сообщение локально - только текст, timestamp оставляем как есть
+    setClientsMessages((prev) => ({
+      ...prev,
+      [selectedClient]: (prev[selectedClient] || []).map(msg => 
+        msg.id === editData.id 
+          ? { ...msg, text: editData.newMessage }
+          : msg
+      ),
+    }));
+  };
+
 
   if (!isLoggedIn || !socketInitialized) {
     return <Login updateSource={updateSource} />;
@@ -433,7 +453,7 @@ function MobileApp() {
             }}
           >
             <span style={{ fontSize: '1.2em' }}>🔄</span>
-            v.1.01 Оновити список
+            v.1.02 Оновити список
           </IconButton>
           <IconButton
             color="primary"
@@ -486,6 +506,7 @@ function MobileApp() {
             clients={chatClients}
             messages={clientsMessages[selectedClient] || []}
             onSendMessage={handleSendMessage}
+            onEditMessage={handleEditMessage}
             source={source}
           />
         )}
