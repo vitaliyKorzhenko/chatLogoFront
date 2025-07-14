@@ -18,6 +18,7 @@ import { FiLogOut , FiRefreshCcw} from 'react-icons/fi';
 import { useTheme } from '@mui/material/styles';
 import { auth } from './firebaseConfig';
 import { getNewMessageText, newMessageNotification, notActive } from './helpers/languageHelper';
+import { APP_CONFIG } from './config/appConfig';
 
 interface SidebarProps {
   clients: { id: number; name: string, chatEnabled: boolean }[];
@@ -90,9 +91,23 @@ const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title
               }}
             >
               <span style={{ fontSize: '1.2em' }}>🔄</span>
-              v.1.02 Оновити список
+              {APP_CONFIG.VERSION} Оновити список
             </IconButton>
           </Tooltip>
+
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 'bold',
+              color: '#333',
+              fontSize: isMobile ? '0.8rem' : '1.1rem',
+              textAlign: 'center',
+              marginTop: '8px',
+              marginBottom: '8px',
+            }}
+          >
+            {source === 'ua' ? 'Мова-Промова' : source === 'govorika' ? 'Govorika' : 'Poland'}
+          </Typography>
 
           <Typography
             variant="body1"

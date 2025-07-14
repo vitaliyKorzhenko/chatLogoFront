@@ -15,6 +15,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 import { notActive } from '../../helpers/languageHelper';
 import { FiLogOut , FiRefreshCcw} from 'react-icons/fi';
+import { APP_CONFIG } from '../../config/appConfig';
 
 
 interface SidebarProps {
@@ -81,9 +82,23 @@ const Sidebar: React.FC<SidebarProps> = ({
               }}
             >
               <span style={{ fontSize: '1.2em' }}>🔄</span>
-             v.1.02 Оновити список
+             {APP_CONFIG.VERSION} Оновити список
             </IconButton>
           </Tooltip>
+
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 'bold',
+              color: '#333',
+              fontSize: '1rem',
+              textAlign: 'center',
+              marginTop: '8px',
+              marginBottom: '8px',
+            }}
+          >
+            {source === 'ua' ? 'Мова-Промова' : source === 'govorika' ? 'Govorika' : 'Poland'}
+          </Typography>
 
       <List>
         {clients.map((client) => (

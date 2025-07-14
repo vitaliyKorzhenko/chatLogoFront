@@ -47,28 +47,8 @@ function App() {
 
   const [loginSource, setLoginSource] = useState<string | null>('ua');
 
-  //delete chatMessages
-  const deleteChatMessage = (message: IChatMessage) => {
-    try {
-      //delete message
-      console.error('Deleting message:', message);
-      //delete message from server
-      message.source = source;
-      socketService.socket.emit('deleteMessage', message );
 
-      //update message
-      setClientsMessages((prev) => {
-        const clientMessages = prev[message.clientId] || [];
-        return {
-          ...prev,
-          [message.clientId]: clientMessages.filter((msg) => msg.id !== message.id),
-        };
-      });
-      
-    } catch (error) {
-      
-    }
-  };
+  
 
   const changeFavicon = (iconUrl: string) => {
     const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement | null;
@@ -195,7 +175,7 @@ function App() {
       console.log("========= START RELOAD TEACHER INFO =========");
       
       // Только новая синхронизация!
-      await syncBumesTeacher(teacherId);
+      await syncBumesTeacher(teacherId, source);
       console.info('Teacher synced successfully');
 
       // Перезагрузка страницы
@@ -342,6 +322,7 @@ useEffect(() => {
       //get source from local storage
       let currentSource = localStorage.getItem('source');
       let email = user.email;
+    //email = 'logokova@gmail.com';
        //email = 'tamilaryinova@gmail.com';
         teacherInfo(email, currentSource)
           .then((data: any) => {
@@ -373,7 +354,7 @@ useEffect(() => {
               setSelectedClient(null);
             }
             console.error("SET SOURCE AND EMAIL", data)
-            setEmail(user.email);
+            setEmail(data.teacherEmail);
             setTeacherId(data.teacherId);
             setSource(data.source);
             setIsLoggedIn(true); 

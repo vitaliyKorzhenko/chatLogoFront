@@ -37,28 +37,7 @@ function MobileApp() {
   const [loginSource, setLoginSource] = useState<string | null>('ua');
 
 
-      //delete chatMessages
-      const deleteChatMessage = (message: IChatMessage) => {
-        try {
-          //delete message
-          console.error('Deleting message:', message);
-          //delete message from server
-          message.source = source;
-          socketService.socket.emit('deleteMessage', message );
-    
-          //update message
-          setClientsMessages((prev) => {
-            const clientMessages = prev[message.clientId] || [];
-            return {
-              ...prev,
-              [message.clientId]: clientMessages.filter((msg) => msg.id !== message.id),
-            };
-          });
-          
-        } catch (error) {
-          
-        }
-      };
+      
 
 
   const updateSource = (source: string) => {
