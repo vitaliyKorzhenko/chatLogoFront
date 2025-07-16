@@ -68,7 +68,7 @@ function MobileApp() {
         console.log("========= START RELOAD TEACHER INFO =========");
         //step 1  syncTeacherWithBumes
         //let currentEmail = 'tamilaryinova@gmail.com';
-        let result = await syncBumesTeacher(teacherId, source);
+        let result = await syncBumesTeacher(teacherId);
         console.info('syncTeacherWithBumes:', result);
   
         //reload page
@@ -248,7 +248,8 @@ function MobileApp() {
                 id: customer.customerId,
                 name: customer.customerName,
                 unread: customer.unreadMessages,
-                chatEnabled: customer.chatEnabled
+                chatEnabled: customer.chatEnabled,
+                source: customer.source
               }));
               console.log('======= FETCHED CLIENTS =======', clients);
               setChatClients(clients);

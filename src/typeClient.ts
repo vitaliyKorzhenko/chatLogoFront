@@ -3,4 +3,5 @@ export interface ChatClient {
     name: string;
     unread: number;
     chatEnabled: boolean;
+    source: string;
 }

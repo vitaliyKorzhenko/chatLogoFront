@@ -21,7 +21,7 @@ import { getNewMessageText, newMessageNotification, notActive } from './helpers/
 import { APP_CONFIG } from './config/appConfig';
 
 interface SidebarProps {
-  clients: { id: number; name: string, chatEnabled: boolean }[];
+  clients: { id: number; name: string, chatEnabled: boolean, source: string }[];
   onSelectClient: (clientId: number) => void;
   email: string;
   title: string;
@@ -95,19 +95,7 @@ const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title
             </IconButton>
           </Tooltip>
 
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: 'bold',
-              color: '#333',
-              fontSize: isMobile ? '0.8rem' : '1.1rem',
-              textAlign: 'center',
-              marginTop: '8px',
-              marginBottom: '8px',
-            }}
-          >
-            {source === 'ua' ? 'Мова-Промова' : source === 'govorika' ? 'Govorika' : 'Poland'}
-          </Typography>
+
 
           <Typography
             variant="body1"
@@ -180,6 +168,20 @@ const Sidebar: React.FC<SidebarProps> = ({ email, clients, onSelectClient, title
   primary={
     <Box component="span">
       {client.name}{' '}
+      <Typography
+        component="span"
+        sx={{ 
+          color: client.source === 'ua' ? '#1976d2' : '#ff6b35', 
+          fontWeight: 'bold', 
+          fontSize: '0.75rem',
+          backgroundColor: client.source === 'ua' ? '#e3f2fd' : '#fff3e0',
+          padding: '2px 6px',
+          borderRadius: '4px',
+          marginLeft: '4px'
+        }}
+      >
+        {client.source === 'ua' ? 'Мова-Промова' : client.source === 'govorika' ? 'Govorika' : 'Poland'}
+      </Typography>
       {!client.chatEnabled ? (
         <Typography
           component="span"

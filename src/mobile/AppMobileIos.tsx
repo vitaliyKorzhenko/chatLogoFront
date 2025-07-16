@@ -244,7 +244,8 @@ function MobileApp() {
                 id: customer.customerId,
                 name: customer.customerName,
                 unread: customer.unreadMessages,
-                chatEnabled: customer.chatEnabled
+                chatEnabled: customer.chatEnabled,
+                source: customer.source
               }));
               console.log('======= FETCHED CLIENTS =======', clients);
               setChatClients(clients);

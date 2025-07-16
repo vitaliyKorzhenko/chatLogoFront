@@ -175,7 +175,7 @@ function App() {
       console.log("========= START RELOAD TEACHER INFO =========");
       
       // Только новая синхронизация!
-      await syncBumesTeacher(teacherId, source);
+      await syncBumesTeacher(teacherId);
       console.info('Teacher synced successfully');
 
       // Перезагрузка страницы
@@ -332,7 +332,8 @@ useEffect(() => {
                 id: customer.customerId,
                 name: customer.customerName,
                 unread: customer.unreadMessages,
-                chatEnabled: customer.chatEnabled
+                chatEnabled: customer.chatEnabled,
+                source: customer.source
               }));
               setChatClients(clients);
             

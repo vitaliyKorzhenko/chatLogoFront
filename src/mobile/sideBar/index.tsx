@@ -19,7 +19,7 @@ import { APP_CONFIG } from '../../config/appConfig';
 
 
 interface SidebarProps {
-  clients: { id: number; name: string; chatEnabled: boolean }[];
+  clients: { id: number; name: string; chatEnabled: boolean; source: string }[];
   onSelectClient: (clientId: number) => void;
   unreadMessages: Record<number, number>;
   selectedClient: number | null;
@@ -86,19 +86,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             </IconButton>
           </Tooltip>
 
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: 'bold',
-              color: '#333',
-              fontSize: '1rem',
-              textAlign: 'center',
-              marginTop: '8px',
-              marginBottom: '8px',
-            }}
-          >
-            {source === 'ua' ? 'Мова-Промова' : source === 'govorika' ? 'Govorika' : 'Poland'}
-          </Typography>
+
 
       <List>
         {clients.map((client) => (
@@ -150,6 +138,20 @@ const Sidebar: React.FC<SidebarProps> = ({
         primary={
           <Box component="span" display="flex" alignItems="center">
             {client.name}
+            <Typography
+              component="span"
+              sx={{ 
+                color: client.source === 'ua' ? '#1976d2' : '#ff6b35', 
+                fontWeight: 'bold', 
+                fontSize: '0.7rem',
+                backgroundColor: client.source === 'ua' ? '#e3f2fd' : '#fff3e0',
+                padding: '1px 4px',
+                borderRadius: '3px',
+                marginLeft: '4px'
+              }}
+            >
+              {client.source === 'ua' ? 'Мова-Промова' : client.source === 'govorika' ? 'Govorika' : 'Poland'}
+            </Typography>
             {unreadMessages[client.id] > 0 && (
            <Typography
            component="span"

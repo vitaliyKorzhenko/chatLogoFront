@@ -20,7 +20,7 @@ import { formatDateTime, formatDateKey } from '../../helpers/dateHelper';
 
 interface ChatWindowProps {
   selectedClient: number | null;
-  clients: { id: number; name: string }[];
+  clients: { id: number; name: string; source: string }[];
   messages: IChatMessage[];
   onSendMessage: (message: string, isEmail: boolean, isFile: boolean) => void;
   onEditMessage?: (editData: IEditMessageModel) => void;
