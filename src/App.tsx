@@ -175,7 +175,7 @@ function App() {
       console.log("========= START RELOAD TEACHER INFO =========");
       
       // Только новая синхронизация!
-      await syncBumesTeacher(teacherId);
+      await syncBumesTeacher(teacherId, source);
       console.info('Teacher synced successfully');
 
       // Перезагрузка страницы
@@ -322,7 +322,7 @@ useEffect(() => {
       //get source from local storage
       let currentSource = localStorage.getItem('source');
       let email = user.email;
-    //email = 'logokova@gmail.com';
+      //email = 'logokova@gmail.com';
        //email = 'tamilaryinova@gmail.com';
         teacherInfo(email, currentSource)
           .then((data: any) => {

@@ -68,7 +68,7 @@ function MobileApp() {
         console.log("========= START RELOAD TEACHER INFO =========");
         //step 1  syncTeacherWithBumes
         //let currentEmail = 'tamilaryinova@gmail.com';
-        let result = await syncBumesTeacher(teacherId);
+        let result = await syncBumesTeacher(teacherId, source);
         console.info('syncTeacherWithBumes:', result);
   
         //reload page

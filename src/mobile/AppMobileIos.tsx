@@ -66,7 +66,7 @@ function MobileApp() {
     const reloadTeacherInfo = async () => {
       try {
         console.log("========= START RELOAD TEACHER INFO =========");
-        let result = await syncBumesTeacher(teacherId);
+        let result = await syncBumesTeacher(teacherId, source);
         console.info('syncTeacherWithBumes:', result);
   
         //reload page

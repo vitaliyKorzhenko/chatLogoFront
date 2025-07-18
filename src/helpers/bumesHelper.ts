@@ -26,14 +26,14 @@ export const sendBumesMessage = async (customerId: number, message: string) => {
 };
 
 // Новый метод синхронизации
-export const syncBumesTeacher = async (teacherId: number) => {
+export const syncBumesTeacher = async (teacherId: number, source: string) => {
   try {
     const response = await fetch(`${BUMES_URL}/sync/${teacherId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ source: 'ua' })
+      body: JSON.stringify({ source: source })
     });
 
     console.log('Response: sync teacher', response);
