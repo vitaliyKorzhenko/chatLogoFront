@@ -15,6 +15,7 @@ import { FiLogOut } from 'react-icons/fi';
 import { IDialogText, messageFromClient, newMessageNotification, notifSettings, getDialogText, chatText, studentsText } from '../helpers/languageHelper';
 import { syncBumesTeacher } from '../helpers/bumesHelper';
 import { isoToLocalString, createTimestampString } from '../helpers/dateHelper';
+import { APP_CONFIG } from '../config/appConfig';
 
 const notificationSound = new Audio('/notification.mp3');
 
@@ -433,7 +434,7 @@ function MobileApp() {
             }}
           >
             <span style={{ fontSize: '1.2em' }}>🔄</span>
-            v.1.02 Оновити список
+            {APP_CONFIG.VERSION} Оновити список
           </IconButton>
           <IconButton
             color="primary"

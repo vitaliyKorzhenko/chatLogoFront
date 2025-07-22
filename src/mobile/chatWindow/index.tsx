@@ -162,10 +162,15 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
   };
 
   useLayoutEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView();
+    if (messagesEndRef.current && messages.length > 0) {
+      // Добавляем небольшую задержку для гарантии обновления DOM
+      setTimeout(() => {
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
     }
-  }, [messages]);
+  }, [messages, selectedClient]);
   
   const stickers = ['😊', '👍', '🎉', '❤️', '😂', '😢', '🙌', '🔥', '🎁', '🤔'];
 

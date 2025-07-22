@@ -322,7 +322,7 @@ useEffect(() => {
       //get source from local storage
       let currentSource = localStorage.getItem('source');
       let email = user.email;
-      //email = 'logokova@gmail.com';
+      //email = 'tuchak99@gmail.com';
        //email = 'tamilaryinova@gmail.com';
         teacherInfo(email, currentSource)
           .then((data: any) => {
