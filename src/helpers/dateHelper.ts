@@ -59,6 +59,28 @@ export const safeParseDate = (dateInput: string | Date | number): Date | null =>
         const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hours), parseInt(minutes));
         return isNaN(date.getTime()) ? null : date;
       }
+      
+      // Пытаемся извлечь компоненты даты из строки вида "01/15/2024, 10:30 AM" (локальный формат)
+      const match5 = dateInput.match(/(\d{1,2})\/(\d{1,2})\/(\d{4}),\s*(\d{1,2}):(\d{2})\s*(AM|PM)/);
+      if (match5) {
+        const [, month, day, year, hours, minutes, ampm] = match5;
+        let hour = parseInt(hours);
+        if (ampm === 'PM' && hour !== 12) hour += 12;
+        if (ampm === 'AM' && hour === 12) hour = 0;
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), hour, parseInt(minutes));
+        return isNaN(date.getTime()) ? null : date;
+      }
+      
+      // Пытаемся извлечь компоненты даты из строки вида "15/01/2024, 10:30 AM" (европейский формат)
+      const match6 = dateInput.match(/(\d{1,2})\/(\d{1,2})\/(\d{4}),\s*(\d{1,2}):(\d{2})\s*(AM|PM)/);
+      if (match6) {
+        const [, day, month, year, hours, minutes, ampm] = match6;
+        let hour = parseInt(hours);
+        if (ampm === 'PM' && hour !== 12) hour += 12;
+        if (ampm === 'AM' && hour === 12) hour = 0;
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), hour, parseInt(minutes));
+        return isNaN(date.getTime()) ? null : date;
+      }
     }
     
     return null;
@@ -87,18 +109,35 @@ export const formatDateTime = (dateInput: string | Date | number): string => {
 };
 
 /**
- * Форматирует дату для отображения в формате "DD-MM" (для группировки)
- * @param dateInput - дата в любом формате
+ * Форматирует дату для отображения в формате "DD-MM-YYYY" (для группировки)
+ * @param dateInput - дата в ISO формате
  * @returns отформатированная строка или "Invalid Date" если не удалось распарсить
  */
 export const formatDateKey = (dateInput: string | Date | number): string => {
-  const date = safeParseDate(dateInput);
-  if (!date) return "Invalid Date";
+  // Простой парсинг ISO даты
+  let date: Date;
+  
+  if (dateInput instanceof Date) {
+    date = dateInput;
+  } else if (typeof dateInput === 'string') {
+    date = new Date(dateInput);
+  } else if (typeof dateInput === 'number') {
+    date = new Date(dateInput);
+  } else {
+    console.error('Invalid date input:', dateInput);
+    return "Invalid Date";
+  }
+  
+  if (isNaN(date.getTime())) {
+    console.error('Failed to parse date for grouping:', dateInput);
+    return "Invalid Date";
+  }
   
   const day = date.getDate().toString().padStart(2, '0');
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
   
-  return `${day}-${month}`;
+  return `${day}-${month}-${year}`;
 };
 
 /**

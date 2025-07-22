@@ -230,7 +230,7 @@ useEffect(() => {
       const newMessages = sortedMessages.map((msg: IServerMessage) => ({
         clientId,
         text: msg.messageText,
-        timestamp: isoToLocalString(msg.createdAt),
+        timestamp: msg.createdAt, // Сохраняем ISO формат
         source: msg.messageType === 'tg' ? 'telegram' : 'whatsapp',
         sender: msg.sender === 'client' ? 'client' : 'teacher',
         id: msg.id,
@@ -247,7 +247,7 @@ useEffect(() => {
       const newMessage: IChatMessage = {
         clientId: data.message.clientId,
         text: data.message.text,
-        timestamp: data.message.timestamp ? isoToLocalString(data.message.timestamp) : createTimestampString(),
+        timestamp: data.message.timestamp || new Date().toISOString(), // Сохраняем ISO формат
         source: data.message.source || 'chat',
         sender: 'client',
         id: data.message.id || Date.now(),
@@ -324,6 +324,7 @@ useEffect(() => {
       let email = user.email;
       //email = 'tuchak99@gmail.com';
        //email = 'tamilaryinova@gmail.com';
+     // email = 'tuchak99@gmail.com';
         teacherInfo(email, currentSource)
           .then((data: any) => {
             let clients: any;
@@ -433,7 +434,7 @@ useEffect(() => {
       id: Date.now(),
       clientId: selectedClient,
       text: message,
-      timestamp: createTimestampString(),
+      timestamp: new Date().toISOString(), // Используем ISO формат
       source: 'chat',
       sender: 'teacher',
       isEmail: isEmail,

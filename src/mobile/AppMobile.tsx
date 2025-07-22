@@ -240,7 +240,7 @@ function MobileApp() {
         setEmail(user.email);
         let currentSource = localStorage.getItem('source');
         let email = user.email;
-        // email = 'tuchak99@gmail.com';
+        //email = 'tuchak99@gmail.com';
 
         teacherInfo(email, currentSource)
           .then((data: any) => {

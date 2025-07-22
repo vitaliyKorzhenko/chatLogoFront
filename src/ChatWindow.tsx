@@ -225,16 +225,37 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
   const groupMessagesByDate = (messages: IChatMessage[]) => {
     const groups: { [key: string]: IChatMessage[] } = {};
     console.log("MEEESAGES", messages);
+    
     messages.forEach(message => {
       const dateKey = formatDateKey(message.timestamp);
       
-      if (!groups[dateKey]) {
-        groups[dateKey] = [];
+      // Если не удалось распарсить дату, группируем по "Invalid Date"
+      const key = dateKey === "Invalid Date" ? "Invalid Date" : dateKey;
+      
+      if (!groups[key]) {
+        groups[key] = [];
       }
-      groups[dateKey].push(message);
+      groups[key].push(message);
     });
     
-    return groups;
+    // Сортируем группы по дате (Invalid Date в конец)
+    const sortedGroups: { [key: string]: IChatMessage[] } = {};
+    const sortedKeys = Object.keys(groups).sort((a, b) => {
+      if (a === "Invalid Date") return 1;
+      if (b === "Invalid Date") return -1;
+      
+      // Парсим даты для правильной сортировки
+      const dateA = new Date(a.split('-').reverse().join('-')); // DD-MM-YYYY -> YYYY-MM-DD
+      const dateB = new Date(b.split('-').reverse().join('-')); // DD-MM-YYYY -> YYYY-MM-DD
+      
+      return dateA.getTime() - dateB.getTime(); // Сортировка от старых к новым
+    });
+    
+    sortedKeys.forEach(key => {
+      sortedGroups[key] = groups[key];
+    });
+    
+    return sortedGroups;
   };
 
   // Функция для форматирования полной даты-времени
