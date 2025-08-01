@@ -48,6 +48,8 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
 
   const [isUploading, setIsUploading] = useState(false); // Состояние для индикатора загрузки
   
+  const fileInputRef = useRef<HTMLInputElement>(null); // Ref для поля ввода файла
+  
   // Состояние для редактирования сообщения
   const [editingMessage, setEditingMessage] = useState<IChatMessage | null>(null);
   const [editText, setEditText] = useState('');
@@ -151,10 +153,24 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
         onSendMessage(uploadedUrl, duplicateToEmail, true);
       } catch (error) {
         console.error('Failed to upload file:', error);
+        // Очищаем поле ввода файла при ошибке
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+        setSelectedFile(null);
+        setSelectedFileName(null);
+        setNewMessage('');
       }
+      
+      // Очищаем после отправки
       setSelectedFile(null);
       setSelectedFileName(null);
       setNewMessage('');
+      
+      // Очищаем поле ввода файла
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } else {
       onSendMessage(newMessage.trim(), duplicateToEmail, false);
       setNewMessage('');
@@ -171,6 +187,16 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
       }, 100);
     }
   }, [messages, selectedClient]);
+
+  // Очищаем файл при смене клиента
+  useEffect(() => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    setSelectedFile(null);
+    setSelectedFileName(null);
+    setNewMessage('');
+  }, [selectedClient]);
   
   const stickers = ['😊', '👍', '🎉', '❤️', '😂', '😢', '🙌', '🔥', '🎁', '🤔'];
 
@@ -539,7 +565,7 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
             </IconButton>
             <IconButton component="label" sx={{ color: '#007bff' }}>
               📎
-              <input type="file" hidden onChange={handleFileChange} />
+              <input ref={fileInputRef} type="file" hidden onChange={handleFileChange} />
             </IconButton>
           </Box>
 

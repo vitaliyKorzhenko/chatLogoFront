@@ -59,7 +59,12 @@ import { Buffer } from 'buffer';
         }
     const fileStream = fs.createReadStream(filePath);
     const fileName = path.basename(filePath);
-    const key = `${folder}/${fileName}`
+    
+    // Добавляем уникальный идентификатор с timestamp
+    const timestamp = Date.now();
+    const uniqueFileName = `${timestamp}_${fileName}`;
+    
+    const key = `${folder}/${uniqueFileName}`
 
       const uploadParams = {
         Bucket: bucketName,
@@ -89,8 +94,12 @@ import { Buffer } from 'buffer';
         this.initialize(this.region, this.endpoint, this.accessKeyId, this.secretAccessKey);
       }
   
-      // Определяем имя файла
-      const key = `${folder}/${file.name}`;
+      // Добавляем уникальный идентификатор с timestamp
+      const timestamp = Date.now();
+      const uniqueFileName = `${timestamp}_${file.name}`;
+      
+      // Определяем имя файла с уникальным идентификатором
+      const key = `${folder}/${uniqueFileName}`;
   
       // Подготавливаем параметры для загрузки
       const uploadParams = {
@@ -130,15 +139,22 @@ import { Buffer } from 'buffer';
           .replace(/[^a-zA-Z0-9_\-.]/g, ''); // Удаляем недопустимые символы
       };
   
-      // Очищаем имя файла
+            // Очищаем имя файла
+      console.log('Original filename:', file.name);
       const sanitizedFileName = sanitizeFileName(file.name);
-  
+      console.log('Sanitized filename:', sanitizedFileName);
+
+      // Добавляем уникальный идентификатор с timestamp
+      const timestamp = Date.now();
+      const uniqueFileName = `${timestamp}_${sanitizedFileName}`;
+      console.log('Final filename:', uniqueFileName);
+
       // Преобразуем File в Buffer
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
-  
-      // Формируем ключ с безопасным именем файла
-      const key = `${folder}/${sanitizedFileName}`;
+
+      // Формируем ключ с уникальным именем файла
+      const key = `${folder}/${uniqueFileName}`;
   
       // Параметры для загрузки
       const uploadParams = {

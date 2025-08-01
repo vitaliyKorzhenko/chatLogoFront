@@ -1,5 +1,5 @@
 export function getNewMessageText (source : string): string  {
-    let text = 'New Messsages';
+    let text = 'Новые сообщения';
 
     switch (source) {
         case 'ua':
@@ -16,7 +16,7 @@ export function getNewMessageText (source : string): string  {
 }
 
 export function viaEmailMessage (source: string): string {
-    let text = 'Send via email';
+    let text = 'Отправить по почте';
 
     switch (source) {
         case 'ua':
@@ -37,7 +37,7 @@ export function viaEmailMessage (source: string): string {
 //     body: `Повідомлення від кліента: ${newMessage.text}`,
 
 export function newMessageNotification (source: string): string {
-    let text = 'New Message!';
+    let text = 'Новое сообщение!';
 
     switch (source) {
         case 'ua':
@@ -54,7 +54,7 @@ export function newMessageNotification (source: string): string {
 }
 
 export function messageFromClient (source: string): string {
-    let text = 'Message from client:';
+    let text = 'Сообщение от клиента:';
 
     switch (source) {
         case 'ua':
@@ -73,7 +73,7 @@ export function messageFromClient (source: string): string {
 //Not Active
 
 export function notActive (source: string): string {
-    let text = 'Not Active';
+    let text = 'Не активен';
 
     switch (source) {
         case 'ua':
@@ -94,7 +94,7 @@ export function notActive (source: string): string {
 //Students
 
 export function studentsText (source: string): string {
-    let text = 'Students';
+    let text = 'Ученики';
 
     switch (source) {
         case 'ua':
@@ -113,7 +113,7 @@ export function studentsText (source: string): string {
 //Chat 
 
 export function chatText (source: string): string {
-    let text = 'Chat';
+    let text = 'Чат';
 
     switch (source) {
         case 'ua':
@@ -193,7 +193,7 @@ export const getDialogText = (lang: string): IDialogText => {
         return "⚠️ Twoja przeglądarka nie pozwala na automatyczne otwarcie ustawień.\n\n🚀 Włącz powiadomienia ręcznie:\n1️⃣ Przejdź do ustawień przeglądarki.\n2️⃣ Znajdź sekcję 'Powiadomienia'.\n3️⃣ Zezwól na powiadomienia dla tej strony.";
   
       default:
-        return "⚠️ Your browser does not allow automatic opening of settings.\n\n🚀 Enable notifications manually:\n1️⃣ Go to your browser settings.\n2️⃣ Find the 'Notifications' section.\n3️⃣ Allow notifications for this site.";
+        return "⚠️ Ваш браузер не позволяет автоматически открыть настройки.\n\n🚀 Включите уведомления вручную:\n1️⃣ Перейдите в настройки браузера.\n2️⃣ Найдите раздел 'Уведомления'.\n3️⃣ Разрешите уведомления для этого сайта.";
     }
   };
 

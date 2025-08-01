@@ -42,6 +42,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
   const [selectedFile, setSelectedFile] = useState<File | null>(null); // Состояние для выбранного файла
 
   const [isUploading, setIsUploading] = useState(false); // Состояние для индикатора загрузки
+  
+  const fileInputRef = useRef<HTMLInputElement>(null); // Ref для поля ввода файла
 
   // Состояние для редактирования сообщения
   const [editingMessage, setEditingMessage] = useState<IChatMessage | null>(null);
@@ -88,11 +90,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
   // ✨ Сохранение отредактированного сообщения
   const handleSaveEdit = () => {
     if (editingMessage && onEditMessage && editText.trim()) {
+      // Находим клиента по clientId и используем его source
+      const selectedClientData = clients.find(client => client.id === editingMessage.clientId);
+      const clientSource = selectedClientData?.source || source; // fallback на source логопеда если клиент не найден
+      
       onEditMessage({
         id: editingMessage.id,
         newMessage: editText.trim(),
         clientId: editingMessage.clientId,
-        source: source
+        source: clientSource
       });
       setEditingMessage(null);
       setEditText('');
@@ -138,12 +144,24 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
         onSendMessage(uploadedUrl, duplicateToEmail, true);
       } catch (error) {
         console.error('Failed to upload file:', error);
+        // Очищаем поле ввода файла при ошибке
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+        setSelectedFile(null);
+        setSelectedFileName(null);
+        setNewMessage('');
       }
   
       // Очищаем после отправки
       setSelectedFile(null);
       setSelectedFileName(null);
       setNewMessage('');
+      
+      // Очищаем поле ввода файла
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } else {
       onSendMessage(newMessage.trim(), duplicateToEmail, false);
       setNewMessage('');
@@ -162,6 +180,16 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
       }, 100);
     }
   }, [messages, selectedClient]);
+
+  // Очищаем файл при смене клиента
+  useEffect(() => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    setSelectedFile(null);
+    setSelectedFileName(null);
+    setNewMessage('');
+  }, [selectedClient]);
 
 
   const stickers = ['😊', '👍', '🎉', '❤️', '😂', '😢', '🙌', '🔥', '🎁', '🤔'];
@@ -567,6 +595,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ selectedClient, clients, messag
 >
   📎 {/* Используем emoji-скрепку */}
   <input
+    ref={fileInputRef}
     type="file"
     hidden
     onChange={handleFileChange}

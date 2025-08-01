@@ -425,30 +425,6 @@ function MobileApp() {
         </Box>
         <Box display="flex" alignItems="center" gap={1}>
           <IconButton
-            onClick={reloadTeacherInfo}
-            sx={{
-              backgroundColor: '#ff3333',
-              color: 'white',
-              borderRadius: '8px',
-              padding: '8px 16px',
-              '&:hover': {
-                backgroundColor: '#e60000',
-                transform: 'scale(1.05)',
-              },
-              transition: 'all 0.2s ease-in-out',
-              boxShadow: '0 2px 8px rgba(255,0,0,0.3)',
-              fontWeight: 'bold',
-              textTransform: 'uppercase',
-              fontSize: '0.9rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-            }}
-          >
-            <span style={{ fontSize: '1.2em' }}>🔄</span>
-            {APP_CONFIG.VERSION} Оновити список
-          </IconButton>
-          <IconButton
             color="primary"
             size="medium"
             onClick={async () => {
