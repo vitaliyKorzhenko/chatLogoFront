@@ -241,6 +241,20 @@ useEffect(() => {
         ...prev,
         [clientId]: [...(prev[clientId] || []), ...newMessages],
       }));
+
+      // Сбрасываем счетчик ПОСЛЕ загрузки сообщений
+      setUnreadMessages((prev) => ({
+        ...prev,
+        [clientId]: 0,
+      }));
+
+      // Обновляем общий счетчик
+      setUnreadMessages((prev) => {
+        const updatedUnread = { ...prev, [clientId]: 0 };
+        const total = Object.values(updatedUnread).reduce((sum, count) => sum + count, 0);
+        setTotalUnreadMessages(total);
+        return updatedUnread;
+      });
     };
 
     const handleNewMessage = (data: any) => {
@@ -322,9 +336,9 @@ useEffect(() => {
       //get source from local storage
       let currentSource = localStorage.getItem('source');
       let email = user.email;
-      //email = 'tuchak99@gmail.com';
+      //email = 'irapetuhowa21@gmail.com' ;
        //email = 'tamilaryinova@gmail.com';
-    // email = 'julikpunk@gmail.com';
+    //   email = 'julikpunk@gmail.com';
         teacherInfo(email, currentSource)
           .then((data: any) => {
             let clients: any;
@@ -408,13 +422,6 @@ useEffect(() => {
       ...prev,
       [clientId]: [],
     }));
-  
-    setUnreadMessages((prev) => ({
-      ...prev,
-      [clientId]: 0,
-    }));
-  
-    setTotalUnreadMessages(Object.values(unreadMessages).reduce((sum, count) => sum + count, 0));
   
     if (socket.connected) {
       console.error('Emitting selectClient:', clientId, email, teacherId, source);
