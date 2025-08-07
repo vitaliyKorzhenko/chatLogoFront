@@ -96,8 +96,22 @@ export const safeParseDate = (dateInput: string | Date | number): Date | null =>
  * @returns отформатированная строка или "Invalid Date" если не удалось распарсить
  */
 export const formatDateTime = (dateInput: string | Date | number): string => {
-  const date = safeParseDate(dateInput);
-  if (!date) return "Invalid Date";
+  // Простой парсинг как было в вебе
+  let date: Date;
+  
+  if (dateInput instanceof Date) {
+    date = dateInput;
+  } else if (typeof dateInput === 'string') {
+    date = new Date(dateInput);
+  } else if (typeof dateInput === 'number') {
+    date = new Date(dateInput);
+  } else {
+    return "Invalid Date";
+  }
+  
+  if (isNaN(date.getTime())) {
+    return "Invalid Date";
+  }
   
   const day = date.getDate().toString().padStart(2, '0');
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -114,8 +128,21 @@ export const formatDateTime = (dateInput: string | Date | number): string => {
  * @returns отформатированная строка или "Invalid Date" если не удалось распарсить
  */
 export const formatDateKey = (dateInput: string | Date | number): string => {
-  const date = safeParseDate(dateInput);
-  if (!date) {
+  // Простой парсинг ISO даты как было в вебе
+  let date: Date;
+  
+  if (dateInput instanceof Date) {
+    date = dateInput;
+  } else if (typeof dateInput === 'string') {
+    date = new Date(dateInput);
+  } else if (typeof dateInput === 'number') {
+    date = new Date(dateInput);
+  } else {
+    console.error('Invalid date input:', dateInput);
+    return "Invalid Date";
+  }
+  
+  if (isNaN(date.getTime())) {
     console.error('Failed to parse date for grouping:', dateInput);
     return "Invalid Date";
   }
