@@ -183,6 +183,8 @@ function MobileApp() {
       const { clientId, messages: serverMessages } = data;
 
       console.log('Server Messages', serverMessages.length, 'MOBILE FIRST MESSAGE', serverMessages[0]);
+      console.log('FIRST MESSAGE CREATED AT:', serverMessages[0]?.createdAt);
+      console.log('FIRST MESSAGE DATE OBJECT:', new Date(serverMessages[0]?.createdAt));
 
       let sortedMessages = serverMessages.sort((a: IServerMessage, b: IServerMessage) =>
         a.id - b.id

@@ -113,12 +113,11 @@ export const formatDateTime = (dateInput: string | Date | number): string => {
     return "Invalid Date";
   }
   
-  // Принудительно используем UTC чтобы избежать проблем с локалью
-  const day = date.getUTCDate().toString().padStart(2, '0');
-  const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
-  const year = date.getUTCFullYear();
-  const hours = date.getUTCHours().toString().padStart(2, '0');
-  const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
   
   return `${day}-${month}-${year} ${hours}:${minutes}`;
 };
@@ -148,10 +147,9 @@ export const formatDateKey = (dateInput: string | Date | number): string => {
     return "Invalid Date";
   }
   
-  // Принудительно используем UTC чтобы избежать проблем с локалью
-  const day = date.getUTCDate().toString().padStart(2, '0');
-  const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
-  const year = date.getUTCFullYear();
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
   
   return `${day}-${month}-${year}`;
 };
