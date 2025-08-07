@@ -114,21 +114,8 @@ export const formatDateTime = (dateInput: string | Date | number): string => {
  * @returns отформатированная строка или "Invalid Date" если не удалось распарсить
  */
 export const formatDateKey = (dateInput: string | Date | number): string => {
-  // Простой парсинг ISO даты
-  let date: Date;
-  
-  if (dateInput instanceof Date) {
-    date = dateInput;
-  } else if (typeof dateInput === 'string') {
-    date = new Date(dateInput);
-  } else if (typeof dateInput === 'number') {
-    date = new Date(dateInput);
-  } else {
-    console.error('Invalid date input:', dateInput);
-    return "Invalid Date";
-  }
-  
-  if (isNaN(date.getTime())) {
+  const date = safeParseDate(dateInput);
+  if (!date) {
     console.error('Failed to parse date for grouping:', dateInput);
     return "Invalid Date";
   }

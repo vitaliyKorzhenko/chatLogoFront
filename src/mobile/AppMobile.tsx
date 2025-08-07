@@ -19,6 +19,23 @@ import { APP_CONFIG } from '../config/appConfig';
 
 const notificationSound = new Audio('/notification.mp3');
 
+// Предзагружаем звук для мобильных устройств
+notificationSound.load();
+
+// Инициализируем звук при первом взаимодействии пользователя
+let soundInitialized = false;
+const initializeSound = () => {
+  if (!soundInitialized) {
+    notificationSound.play().then(() => {
+      notificationSound.pause();
+      notificationSound.currentTime = 0;
+      soundInitialized = true;
+    }).catch(err => {
+      console.error('Failed to initialize sound:', err);
+    });
+  }
+};
+
 function MobileApp() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [chatClients, setChatClients] = useState<ChatClient[]>([]);
@@ -105,6 +122,21 @@ function MobileApp() {
     };
 
     checkNotificationPermission();
+    
+    // Инициализируем звук при загрузке компонента
+    const handleFirstInteraction = () => {
+      initializeSound();
+      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener('touchstart', handleFirstInteraction);
+    };
+    
+    document.addEventListener('click', handleFirstInteraction);
+    document.addEventListener('touchstart', handleFirstInteraction);
+    
+    return () => {
+      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener('touchstart', handleFirstInteraction);
+    };
   }, []);
 
   const handleClose = () => setOpen(false);
@@ -153,7 +185,7 @@ function MobileApp() {
       console.log('Server Messages', serverMessages.length, 'MOBILE FIRST MESSAGE', serverMessages[0]);
 
       let sortedMessages = serverMessages.sort((a: IServerMessage, b: IServerMessage) =>
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        a.id - b.id
       );
 
       // filter sorted messages by isActive = true
@@ -162,7 +194,7 @@ function MobileApp() {
       const newMessages = sortedMessages.map((msg: IServerMessage) => ({
         clientId,
         text: msg.messageText,
-        timestamp: isoToLocalString(msg.createdAt),
+        timestamp: msg.createdAt, // Сохраняем ISO формат как в веб-версии
         source: msg.messageType === 'tg' ? 'telegram' : 'whatsapp',
         sender: msg.sender === 'client' ? 'client' : 'teacher',
         id: msg.id,
@@ -173,13 +205,27 @@ function MobileApp() {
         ...prev,
         [clientId]: [...(prev[clientId] || []), ...newMessages],
       }));
+
+      // Сбрасываем счетчик ПОСЛЕ загрузки сообщений
+      setUnreadMessages((prev) => ({
+        ...prev,
+        [clientId]: 0,
+      }));
+
+      // Обновляем общий счетчик
+      setUnreadMessages((prev) => {
+        const updatedUnread = { ...prev, [clientId]: 0 };
+        const total = Object.values(updatedUnread).reduce((sum, count) => sum + count, 0);
+        setTotalUnreadMessages(total);
+        return updatedUnread;
+      });
     };
 
     const handleNewMessage = (data: any) => {
       const newMessage: IChatMessage = {
         clientId: data.message.clientId,
         text: data.message.text,
-        timestamp: data.message.timestamp ? isoToLocalString(data.message.timestamp) : createTimestampString(),
+        timestamp: data.message.timestamp || new Date().toISOString(), // Сохраняем ISO формат как в веб-версии
         source: data.message.source || 'chat',
         sender: 'client',
         id: data.message.id || Date.now(),
@@ -187,8 +233,21 @@ function MobileApp() {
       };
 
       try {
-        // Добавляем воспроизведение звука
-        notificationSound.play().catch(err => console.error('Error playing sound:', err));
+        // Добавляем воспроизведение звука для мобильных устройств
+        if (soundInitialized) {
+          notificationSound.currentTime = 0; // Сбрасываем время воспроизведения
+          notificationSound.volume = 1.0; // Устанавливаем максимальную громкость
+          notificationSound.play().catch(err => {
+            console.error('Error playing sound:', err);
+            // Попытка воспроизвести звук снова через небольшую задержку
+            setTimeout(() => {
+              notificationSound.play().catch(err2 => console.error('Second attempt to play sound failed:', err2));
+            }, 100);
+          });
+        } else {
+          // Если звук не инициализирован, пробуем инициализировать и воспроизвести
+          initializeSound();
+        }
 
         console.error('START SHOWING NOTIFICATION');
         showBrowserNotification(newMessageNotification(source), {
@@ -316,19 +375,20 @@ function MobileApp() {
     setSelectedClient(clientId);
     setActiveTab(1);
 
-  
     // Очищаем сообщения перед загрузкой новых
     setClientsMessages((prev) => ({
       ...prev,
       [clientId]: [],
     }));
   
-    setUnreadMessages((prev) => ({
-      ...prev,
-      [clientId]: 0,
-    }));
-  
-    setTotalUnreadMessages(Object.values(unreadMessages).reduce((sum, count) => sum + count, 0));
+    // Сбрасываем счетчик непрочитанных сообщений для выбранного клиента
+    setUnreadMessages((prev) => {
+      const updatedUnread = { ...prev, [clientId]: 0 };
+      // Обновляем общий счетчик
+      const total = Object.values(updatedUnread).reduce((sum, count) => sum + count, 0);
+      setTotalUnreadMessages(total);
+      return updatedUnread;
+    });
   
     if (socket.connected) {
       console.error('Emitting selectClient:', clientId, email, teacherId, source);
@@ -348,7 +408,7 @@ function MobileApp() {
       id: Date.now(),
       clientId: selectedClient,
       text: message,
-      timestamp: createTimestampString(),
+      timestamp: new Date().toISOString(), // Используем ISO формат как в веб-версии
       source: 'chat',
       sender: 'teacher',
       isEmail: isEmail,

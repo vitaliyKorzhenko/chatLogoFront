@@ -338,7 +338,7 @@ useEffect(() => {
       let email = user.email;
       //email = 'irapetuhowa21@gmail.com' ;
        //email = 'tamilaryinova@gmail.com';
-    //   email = 'julikpunk@gmail.com';
+     //email = 'olgamosalkova@gmail.com';
         teacherInfo(email, currentSource)
           .then((data: any) => {
             let clients: any;

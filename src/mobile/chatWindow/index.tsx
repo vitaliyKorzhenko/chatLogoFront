@@ -242,9 +242,11 @@ const MobileChatWindow: React.FC<ChatWindowProps> = ({
   // Функция для группировки сообщений по дням
   const groupMessagesByDate = (messages: IChatMessage[]) => {
     const groups: { [key: string]: IChatMessage[] } = {};
+    console.log("MOBILE MESSAGES FOR GROUPING:", messages);
     
     messages.forEach(message => {
       const dateKey = formatDateKey(message.timestamp);
+      console.log("Message timestamp:", message.timestamp, "Formatted date key:", dateKey);
       
       // Если не удалось распарсить дату, группируем по "Invalid Date"
       const key = dateKey === "Invalid Date" ? "Invalid Date" : dateKey;
