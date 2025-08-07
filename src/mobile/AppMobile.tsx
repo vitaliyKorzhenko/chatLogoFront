@@ -193,15 +193,18 @@ function MobileApp() {
       // filter sorted messages by isActive = true
       sortedMessages = sortedMessages.filter((msg: IServerMessage) => msg.isActive == true);
 
-      const newMessages = sortedMessages.map((msg: IServerMessage) => ({
-        clientId,
-        text: msg.messageText,
-        timestamp: msg.createdAt, // Сохраняем ISO формат как в веб-версии
-        source: msg.messageType === 'tg' ? 'telegram' : 'whatsapp',
-        sender: msg.sender === 'client' ? 'client' : 'teacher',
-        id: msg.id,
-        format: msg.format,
-      }));
+      const newMessages = sortedMessages.map((msg: IServerMessage) => {
+        console.log('MOBILE: Server message createdAt:', msg.createdAt);
+        return {
+          clientId,
+          text: msg.messageText,
+          timestamp: msg.createdAt, // Сохраняем ISO формат как в веб-версии
+          source: msg.messageType === 'tg' ? 'telegram' : 'whatsapp',
+          sender: msg.sender === 'client' ? 'client' : 'teacher',
+          id: msg.id,
+          format: msg.format,
+        };
+      });
 
       setClientsMessages((prev) => ({
         ...prev,
